@@ -18,7 +18,8 @@ class CustomTextField extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEditingComplete;
   final Function(String)? onChanged;
-  final int maxLength;
+  final int? maxLength;
+  final int? maxLines;
 
   const CustomTextField({
     Key? key,
@@ -39,6 +40,7 @@ class CustomTextField extends StatefulWidget {
     this.onEditingComplete,
     this.onChanged,
     this.maxLength = 20,
+    this.maxLines = 1,
 
   }) : super(key: key);
 
@@ -58,7 +60,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.keyboardType);
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextFormField(
@@ -79,6 +80,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         },
         onEditingComplete: widget.onEditingComplete,
         maxLength: widget.maxLength,
+        maxLines: widget.maxLines,
         enabled: widget.enabled,
         keyboardType: widget.keyboardType,
         controller: widget.controller,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../config/custom_colos.dart';
+import '../../../config/custom_colors.dart';
 import '../controller/loading_controller.dart';
 
 

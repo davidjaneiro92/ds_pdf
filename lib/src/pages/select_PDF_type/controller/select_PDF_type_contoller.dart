@@ -10,6 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
 
 import '../../../components/loading/controller/loading_controller.dart';
+import '../../../repositories/pdf_documents_repository.dart';
 
 
 class SelectPdfTypeContoller extends GetxController
@@ -57,12 +58,20 @@ class SelectPdfTypeContoller extends GetxController
     }
 
     final dir = await getApplicationDocumentsDirectory();
-    final file = File("${dir.path}/gerado.pdf");
+    final filename = 'ds_pdf_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final file = File("${dir.path}/$filename");
 
-    await file.writeAsBytes(await pdf.save());
+    final bytes = await pdf.save();
+    await file.writeAsBytes(bytes);
+
+    await Get.find<PdfDocumentsRepository>().registrarDocumento(
+      fileName: filename,
+      path: file.path,
+      createdAt: DateTime.now(),
+    );
 
     // Compartilhar
-    await Printing.sharePdf(bytes: await pdf.save(), filename: 'gerado.pdf');
+    await Printing.sharePdf(bytes: bytes, filename: filename);
   }
 
 }

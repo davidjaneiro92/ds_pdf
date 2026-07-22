@@ -7,8 +7,14 @@ plugins {
 
 android {
     namespace = "com.dsdev.pdf.ds_pdf"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Versões mais altas que o padrão do Flutter, pedidas pelos plugins
+    // usados neste projeto (flutter_plugin_android_lifecycle exige SDK 35;
+    // flutter_doc_scanner, image_picker_android, path_provider_android,
+    // permission_handler_android, printing e uri_to_file exigem NDK
+    // 27.0.12077973) — SDKs/NDKs mais novos são compatíveis com versões
+    // anteriores, então isso não quebra nada que já funcionava.
+    compileSdk = 35
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

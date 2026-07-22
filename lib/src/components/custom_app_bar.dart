@@ -1,4 +1,4 @@
-import 'package:ds_pdf/src/config/custom_colos.dart';
+import 'package:ds_pdf/src/config/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';

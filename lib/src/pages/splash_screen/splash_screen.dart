@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
-import '../../config/custom_colos.dart';
 import '../../enum/pages_routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -45,13 +43,12 @@ class _SplashScreenState extends State<SplashScreen> {
               valueColor: AlwaysStoppedAnimation(Color(0xFF357be9)),
             ),
             const Text("PDF Generator",
-              style: const TextStyle(
+              style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
               ),
             ),
-            Text("Convert Images or text to PDF files"),
-            Text("text to PDF files"),
+            const Text("Convert images or text to PDF files"),
           ],
         ),
       ),

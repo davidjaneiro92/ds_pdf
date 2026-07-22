@@ -1,0 +1,73 @@
+# Estrutura de Pastas
+
+```
+ds_pdf/
+├── specs/                          # Esta documentação (SDD)
+├── assets/
+│   └── img/                        # Ícones e ilustrações usados nas telas (PNG)
+├── lib/
+│   ├── main.dart                   # Bootstrap: ErrorWidget global, DI (Get.put), GetMaterialApp
+│   └── src/
+│       ├── components/             # Widgets reutilizáveis, sem estado de negócio próprio de uma feature
+│       │   ├── custom_alert.dart          # Diálogos de confirmação/informação
+│       │   ├── custom_app_bar.dart        # AppBar padrão do app (com botão voltar)
+│       │   ├── custom_error_widget.dart   # Tela de erro global (ErrorWidget.builder)
+│       │   ├── custom_list_tile.dart      # ListTile genérico
+│       │   ├── custom_text_field.dart     # TextFormField completo (senha, validação, foco)
+│       │   ├── custom_toast.dart          # Toast global (sucesso/aviso/erro) via oktoast
+│       │   └── loading/                   # Overlay de loading global
+│       │       ├── controller/loading_controller.dart
+│       │       └── view/loading.dart
+│       ├── config/
+│       │   └── custom_colors.dart  # Paleta de cores do app (MaterialColor CustomColors.blue)
+│       ├── enum/
+│       │   ├── pages_routes.dart          # Enum com os paths de todas as rotas nomeadas
+│       │   ├── pdf_font_option.dart       # Fontes disponíveis para Texto→PDF (mapeadas para pw.Font)
+│       │   └── pdf_text_align_option.dart # Alinhamentos disponíveis para Texto→PDF (mapeados para pw.TextAlign)
+│       ├── models/                 # Classes de dados puras (sem UI, sem GetX)
+│       │   ├── pdf_document_model.dart    # Metadado de um PDF gerado (nome, caminho, favorito, pasta)
+│       │   └── pdf_folder_model.dart      # Pasta usada para organizar documentos em Meus Arquivos
+│       ├── pages/                  # Uma pasta por feature/tela
+│       │   ├── my_files/                   # Meus Arquivos: listar/pesquisar/organizar PDFs gerados
+│       │   │   ├── abstract/my_files_controller_abstract.dart
+│       │   │   ├── controller/my_files_controller.dart
+│       │   │   └── view/my_files_view.dart
+│       │   ├── pdf_editor/                 # Editor de PDF: reordenar/excluir páginas, assinar
+│       │   │   ├── abstract/pdf_editor_controller_abstract.dart
+│       │   │   ├── controller/pdf_editor_controller.dart
+│       │   │   └── view/pdf_editor_view.dart
+│       │   ├── scanner/                    # Scanner de documentos via câmera
+│       │   │   ├── abstract/scanner_controller_abstract.dart
+│       │   │   ├── controller/scanner_controller.dart
+│       │   │   └── view/scanner_view.dart
+│       │   ├── select_PDF_type/            # Tela inicial de seleção do tipo de conversão
+│       │   │   ├── abstract/select_PDF_type_contoller_abstract.dart
+│       │   │   ├── controller/select_PDF_type_contoller.dart
+│       │   │   └── view/select_PDF_type_view.dart
+│       │   ├── splash_screen/
+│       │   │   └── splash_screen.dart      # Tela de abertura (redireciona após 2s)
+│       │   └── text_to_pdf/                # Editor de texto → PDF
+│       │       ├── abstract/text_to_pdf_controller_abstract.dart
+│       │       ├── controller/text_to_pdf_controller.dart
+│       │       └── view/text_to_pdf_view.dart
+│       ├── pages_routes/
+│       │   └── app_pages.dart      # Lista de GetPage consumida pelo GetMaterialApp
+│       └── repositories/
+│           └── pdf_documents_repository.dart  # Único repositório do projeto; encapsula as boxes Hive
+├── test/
+│   └── widget_test.dart            # Smoke test: app inicializa e mostra a splash screen
+├── android/, ios/, linux/, macos/, web/, windows/   # Boilerplate de plataforma do `flutter create`
+├── pubspec.yaml                    # Dependências e configuração do projeto
+└── README.md
+```
+
+## O que cada pasta representa
+
+- **`components/`** — qualquer widget usado por mais de uma tela, ou que encapsula um comportamento transversal (toast, loading, tratamento de erro). Não conhece regra de negócio de nenhuma feature específica.
+- **`config/`** — configuração visual/global do app (hoje só cores; é o lugar natural para um futuro `theme.dart` com suporte a dark mode).
+- **`enum/`** — enums compartilhados por todo o app: rotas, e as opções de fonte/alinhamento usadas pela feature Texto→PDF. Qualquer novo enum de domínio (ex.: tipo de filtro do scanner) deveria entrar aqui.
+- **`models/`** — estruturas de dados puras, reutilizadas entre o repositório e as features que exibem/editam esses dados (hoje só `my_files/`, mas os 3 controllers geradores também usam `PdfDocumentModel` indiretamente via o repositório).
+- **`pages/<feature>/`** — cada funcionalidade do app (Scanner, Seleção de tipo, Splash, Texto→PDF, Meus Arquivos, Editor de PDF) é uma pasta isolada com seu próprio controller/view/abstract. Isso facilita adicionar ou remover uma feature inteira sem tocar em outras.
+- **`pages_routes/`** — ponto único onde as rotas de todas as features são registradas no `GetMaterialApp`.
+- **`repositories/`** — acesso a dados persistidos (Hive). Isola qualquer controller de saber como/onde os dados são guardados.
+- **`assets/img/`** — todos os assets de imagem do app (minúsculo, conforme declarado em `pubspec.yaml`; corrigido nesta sessão — ver [08-auditoria.md](08-auditoria.md)).

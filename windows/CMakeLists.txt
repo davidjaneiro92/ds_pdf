@@ -32,6 +32,13 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Alguns plugins (ex.: permission_handler_windows) ainda usam
+# <experimental/coroutine>, que versões recentes do MSVC tratam como erro
+# fatal de compilação em vez de aviso. Essa definição silencia o erro sem
+# mudar nenhum comportamento do app (o header ainda funciona, só para de
+# barrar o build).
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
