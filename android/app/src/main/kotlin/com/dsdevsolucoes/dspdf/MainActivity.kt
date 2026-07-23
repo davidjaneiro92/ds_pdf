@@ -1,4 +1,4 @@
-package com.dsdev.pdf.ds_pdf
+package com.dsdevsolucoes.dspdf
 
 import io.flutter.embedding.android.FlutterActivity
 

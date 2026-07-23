@@ -2,6 +2,21 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-07-23 (2) — Configuração: applicationId e nome de exibição definitivos
+
+Segundo passo do checklist de publicação: identidade do app na Play Store.
+
+### Alterado
+- `applicationId`/`namespace`: `com.dsdev.pdf.ds_pdf` → **`com.dsdevsolucoes.dspdf`** (em `android/app/build.gradle.kts`) — definitivo, não muda mais depois do primeiro envio à Play Store.
+- `MainActivity.kt` movido de `android/app/src/main/kotlin/com/dsdev/pdf/ds_pdf/` para `android/app/src/main/kotlin/com/dsdevsolucoes/dspdf/`, com o `package` atualizado.
+- Nome de exibição do app: `android:label` (Android, em `AndroidManifest.xml`) e `CFBundleDisplayName` (iOS, em `Info.plist`) → **"DS PDF"** (antes "ds_pdf"/"Ds Pdf").
+- `pubspec.yaml`: `description` atualizada (antes era o texto padrão do `flutter create`). O campo `name: ds_pdf` (nome interno do pacote Dart, usado em todos os `import 'package:ds_pdf/...'` do projeto) **não foi alterado** — é independente do `applicationId`/nome de exibição, e renomeá-lo exigiria atualizar todos os imports do projeto sem nenhum benefício real.
+
+### Validado
+- `flutter analyze`: 0 erros, sem novos avisos.
+- `flutter build appbundle --release` e `flutter build apk --release`: completam com sucesso.
+- `aapt2 dump badging` no APK gerado confirma `package: name='com.dsdevsolucoes.dspdf'` e `application-label:'DS PDF'`.
+
 ## 2026-07-23 — Configuração: assinatura de release para a Play Store
 
 Primeiro passo do checklist oficial do Flutter para publicação ([docs.flutter.dev/deployment/android](https://docs.flutter.dev/deployment/android)): o build de release estava assinado com a chave de debug, o que a Play Store rejeita.

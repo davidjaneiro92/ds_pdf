@@ -20,7 +20,7 @@ if (hasReleaseKeystore) {
 }
 
 android {
-    namespace = "com.dsdev.pdf.ds_pdf"
+    namespace = "com.dsdevsolucoes.dspdf"
     // compileSdk 35 é exigido por flutter_plugin_android_lifecycle (fixa
     // "compileSdk 35" no próprio build.gradle) — não é opcional para este
     // projeto. O Android SDK Build-Tools 35.0.0 correspondente não estava
@@ -46,10 +46,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.dsdev.pdf.ds_pdf"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // Identificador definitivo do app na Play Store — não pode mudar
+        // depois do primeiro envio.
+        applicationId = "com.dsdevsolucoes.dspdf"
         // minSdk 23 (Android 6.0) é exigido pela dependência nativa do Scanner
         // (com.google.android.gms:play-services-mlkit-document-scanner) — o
         // padrão do Flutter (21) não é suficiente para essa biblioteca.
