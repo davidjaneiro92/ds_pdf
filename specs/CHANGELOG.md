@@ -2,7 +2,17 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
-## 2026-07-23 (5) — Identidade visual: cor da logo + tema claro/escuro
+## 2026-07-23 (6) — Versão 1.1.0+3: build de release para novo envio à Play Store
+
+Empacota as correções/mudanças das entradas (4) e (5) desta mesma data (travamento do Scanner, botão Meus Arquivos oculto, campo de texto maior, identidade visual + tema claro/escuro) numa nova versão para reenvio ao Play Console.
+
+### Alterado
+- `pubspec.yaml`: `version: 1.0.0+2` → **`1.1.0+3`**. `versionCode` (build number) incrementado — obrigatório para qualquer novo envio à Play Store. `versionName` (1.0.0 → 1.1.0) subiu a versão minor por incluir funcionalidade nova (tema claro/escuro), não só correções de bug.
+
+### Build
+- `flutter build appbundle --release` **falhou por falta de memória** (`Out of memory` no compilador Dart) — a máquina tinha só ~3,5 GB de RAM livre no momento (IDEs e navegador do usuário consumindo o resto), abaixo do necessário para compilar as 3 arquiteturas padrão (armeabi-v7a, arm64-v8a, x86_64) de uma vez.
+- Contornado com `flutter build appbundle --release --target-platform android-arm64`, limitando o AAB à arquitetura arm64 — cobre a grande maioria dos aparelhos Android reais em uso hoje (exclui apenas aparelhos ARM de 32 bits mais antigos e emuladores x86_64). Build resultante: `build/app/outputs/bundle/release/app-release.aab` (16,6 MB), assinado com o keystore de release já configurado (`android/upload-keystore.jks`).
+- **Se for necessário suporte a mais arquiteturas no futuro**, rodar `flutter build appbundle --release` sem a flag `--target-platform` numa hora em que a máquina tenha mais RAM livre (fechar IDEs/abas de navegador antes), ou considerar aumentar a memória do compilador Dart/Gradle.
 
 Pedido do usuário: as cores do app deveriam seguir a cor da logo/ícone, e deveria existir um botão de claro/escuro no canto direito da barra superior.
 
