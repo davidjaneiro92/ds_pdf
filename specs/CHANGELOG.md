@@ -2,6 +2,23 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-07-22 (2) — Correção: build Android quebrado (Windows, celular, APK)
+
+O app não rodava no Windows, não rodava direto no celular e não gerava APK (nem debug nem release) — não era um problema do ambiente do usuário, era configuração desatualizada do projeto. Ver diagnóstico completo e todas as correções em [07-engenharia.md](07-engenharia.md#ambiente-de-build-windows--leia-antes-de-configurar-uma-máquina-nova).
+
+### Corrigido
+- `android/build.gradle.kts`: timing do fallback de `namespace` corrigido (`Cannot run Project.afterEvaluate... already evaluated`).
+- `android/app/build.gradle.kts`: `minSdk` elevado de 21 para 23 (exigido pela dependência nativa do Scanner, `play-services-mlkit-document-scanner`).
+- `android/gradle.properties`: heap do Gradle reduzido de 8G para 3G (evita `OutOfMemoryError`/crash do daemon); adicionado `-Djavax.net.ssl.trustStoreType=Windows-ROOT` (corrige falha de SSL ao baixar dependências); `kotlin.incremental=false` (evita crash do compilador Kotlin com `PUB_CACHE` em unidade de disco diferente do projeto).
+- `windows/CMakeLists.txt`: silenciado erro de compilação do `permission_handler_windows` com MSVC recente (`_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS`) — já estava no repositório desde a sessão de fundação, mas só foi validado de fato nesta sessão.
+
+### Específico desta máquina (não versionado)
+- Pastas locais `C:\Android\build-tools\35.0.0` e `C:\Android\platforms\android-31` criadas manualmente (esta máquina não tinha internet para baixar via `sdkmanager`).
+- `GRADLE_USER_HOME` (variável de ambiente do usuário) e a pasta `ds_pdf\build\` redirecionados para `E:\bild_flutter\` — o disco C: desta máquina estava com pouquíssimo espaço livre (chegou a 0 GB durante a sessão).
+
+### Validado
+- `flutter run -d windows`, `flutter build apk --debug` e `flutter build apk --release` completam com sucesso (testado, inclusive com o cache do Gradle recriado do zero).
+
 ## 2026-07-22 — Feature: Editor de PDF
 
 ### Adicionado

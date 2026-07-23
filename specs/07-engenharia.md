@@ -46,6 +46,26 @@
 | `syncfusion_flutter_pdf` | ^29.1.38 | **Novo** — manipulação de PDFs existentes (reordenar/excluir páginas, carimbar assinatura) no Editor de PDF, preservando qualidade/texto vetorial. **Biblioteca comercial** — ver aviso de licenciamento abaixo em Riscos. |
 | `signature` | ^5.5.0 | **Novo** — captura de assinatura desenhada (canvas) no Editor de PDF. MIT, leve, sem questões de licenciamento. |
 
+## Ambiente de build (Windows) — leia antes de configurar uma máquina nova
+
+O app não conseguia rodar no Windows nem gerar APK (debug ou release) nesta máquina. As causas eram configuração/ambiente, não bugs no código Dart do app. Corrigido em duas frentes:
+
+### No repositório (`android/build.gradle.kts`, `android/app/build.gradle.kts`, `android/gradle.properties`)
+
+| Problema | Causa | Correção |
+|---|---|---|
+| `Cannot run Project.afterEvaluate(Action) when the project is already evaluated` | O fallback de `namespace` para plugins antigos (`uri_to_file`) registrava `afterEvaluate` sem checar se o módulo já tinha sido avaliado. | `android/build.gradle.kts`: checa `project.state.executed` antes de decidir entre aplicar direto ou via `afterEvaluate`. |
+| `uses-sdk:minSdkVersion 21 cannot be smaller than version 23` | `com.google.android.gms:play-services-mlkit-document-scanner` (dependência nativa transitiva do Scanner) exige minSdk 23; o padrão do Flutter é 21. | `android/app/build.gradle.kts`: `minSdk = 23` (Android 6.0+). |
+| `Gradle build daemon disappeared` / `OutOfMemoryError` | Heap do daemon configurado em 8G, mas a máquina frequentemente tem pouca RAM livre (observado ~4,8 GB livres com outros programas abertos) — insuficiente para 8G de heap Java + overhead nativo de Kotlin/R8/AAPT2, principalmente em builds `--release` (usam R8). | `android/gradle.properties`: `-Xmx3G -XX:MaxMetaspaceSize=2G`. |
+| `PKIX path building failed: unable to find valid certification path` ao baixar dependências do Maven | O trust store interno do JDK (Microsoft Build of OpenJDK 17) não reconhece a cadeia de certificado usada por `dl.google.com`/`repo.maven.apache.org` nesta máquina, mesmo o Windows confiando nela (`Invoke-WebRequest` funciona normalmente). | `android/gradle.properties`: `-Djavax.net.ssl.trustStoreType=Windows-ROOT` (faz o JVM usar o mesmo trust store do Windows). |
+| `this and base files have different roots` (crash do compilador Kotlin) | `PUB_CACHE` está na unidade E: nesta máquina, mas o projeto está na unidade C:. O cache incremental do Kotlin tenta calcular caminho relativo entre arquivos-fonte de plugins (em E:) e o projeto (em C:) — impossível entre unidades diferentes no Windows. | `android/gradle.properties`: `kotlin.incremental=false` (só deixa rebuilds um pouco mais lentos). |
+
+### Só nesta máquina, fora do repositório (não versionado — replicar manualmente em outra máquina, se necessário)
+
+- **`C:\Android\build-tools\35.0.0`** e **`C:\Android\platforms\android-31`** foram criados manualmente (cópias de `build-tools\34.0.0` e `platforms\android-34`, com os arquivos `source.properties`/`package.xml` ajustados para declarar as versões corretas) porque esta máquina não tinha acesso à internet para baixar esses componentes via `sdkmanager` no momento da sessão, e `flutter_plugin_android_lifecycle`/`uri_to_file` exigem, respectivamente, compileSdk 35 e compileSdk 31. **Se em algum momento houver acesso à internet**, o ideal é instalar de verdade via `sdkmanager "build-tools;35.0.0"` (o `platforms;android-31` real não é estritamente necessário — só é pedido pelo `uri_to_file`, que já está sinalizado como candidato a substituição no backlog de riscos) e remover essas pastas manuais.
+- **`GRADLE_USER_HOME`** definido como variável de ambiente do usuário do Windows, apontando para `E:\bild_flutter\gradle_home` — o cache do Gradle (que pode passar de 5 GB) ficava em `C:\Users\<usuário>\.gradle` por padrão, e o disco C: desta máquina tem pouquíssimo espaço livre. Isso é uma configuração de máquina, não do projeto — outra máquina com mais espaço em C: não precisa disso.
+- O diretório de build do projeto (`ds_pdf\build\`) foi transformado numa **junction do NTFS** apontando para `E:\bild_flutter\build\ds_pdf`, pelo mesmo motivo de espaço em disco.
+
 ## Riscos
 
 - **`flutter_doc_scanner` é um pacote pequeno/comunitário** (não é um pacote oficial do Google/Flutter), embora envolva as APIs nativas oficiais (ML Kit Document Scanner, VisionKit). Se ele parar de ser mantido, a alternativa é trocar por outro wrapper equivalente (`aio_scanner`, `flutter_docs_scanner`) sem reescrever a lógica de negócio do `ScannerController` (a troca ficaria isolada nesse arquivo).
