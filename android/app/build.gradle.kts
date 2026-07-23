@@ -53,7 +53,10 @@ android {
         // (com.google.android.gms:play-services-mlkit-document-scanner) — o
         // padrão do Flutter (21) não é suficiente para essa biblioteca.
         minSdk = 23
-        targetSdk = flutter.targetSdkVersion
+        // targetSdk 35: a Play Store passou a exigir API 35 (Android 15) como
+        // mínimo para novos envios — o padrão do Flutter (34) é rejeitado no
+        // upload ("nível desejado da API... precisa ser de pelo menos 35").
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -78,6 +81,12 @@ android {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")
+            }
+            // Inclui os símbolos de depuração do código nativo (motor do
+            // Flutter + libs nativas dos plugins) direto no .aab, evitando o
+            // aviso do Play Console pedindo upload manual desses símbolos.
+            ndk {
+                debugSymbolLevel = "FULL"
             }
         }
     }

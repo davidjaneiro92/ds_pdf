@@ -2,6 +2,18 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-07-23 (3) — Correção: erro real de upload no Play Console (targetSdk)
+
+Primeiro envio real do `.aab` ao Play Console (teste interno) retornou 1 erro bloqueador e 2 avisos.
+
+### Corrigido
+- **Erro "nível desejado da API do app é 34... precisa ser de pelo menos 35"**: `targetSdk` fixado em 35 em `android/app/build.gradle.kts` (antes usava o padrão do Flutter, 34). A Play Store exige um `targetSdk` mínimo que sobe todo ano — esse valor deve ser revisado a cada novo envio de versão.
+- `buildTypes.release` ganhou `ndk { debugSymbolLevel = "FULL" }`, tentando resolver o aviso de símbolos de depuração nativos ausentes — não eliminou o aviso (ver Riscos em [07-engenharia.md](07-engenharia.md)), mas mantido por ser inofensivo.
+
+### Não corrigido (não é um problema do projeto)
+- Aviso "não fez upload dos símbolos de depuração": comum em apps Flutter, referente aos binários pré-compilados do motor do Flutter (`libapp.so`/`libflutter.so`), não bloqueia a publicação.
+- Aviso "nenhum testador especificado": configuração feita direto no Play Console (aba de testadores da faixa de teste), não no código.
+
 ## 2026-07-23 (2) — Configuração: applicationId e nome de exibição definitivos
 
 Segundo passo do checklist de publicação: identidade do app na Play Store.
