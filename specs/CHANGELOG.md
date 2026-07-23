@@ -2,6 +2,22 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-07-23 — Configuração: assinatura de release para a Play Store
+
+Primeiro passo do checklist oficial do Flutter para publicação ([docs.flutter.dev/deployment/android](https://docs.flutter.dev/deployment/android)): o build de release estava assinado com a chave de debug, o que a Play Store rejeita.
+
+### Adicionado
+- `android/upload-keystore.jks` — keystore de release (RSA 2048, validade ~27 anos, alias `upload`). **Não versionado** (fora do git, `android/.gitignore` já cobre `*.jks`).
+- `android/key.properties` — credenciais do keystore (alias, senhas, caminho do arquivo). **Não versionado** (`android/.gitignore` já cobre `key.properties`).
+- `android/app/build.gradle.kts`: lê `key.properties` (se existir) e monta `signingConfigs.release` a partir dele; `buildTypes.release` usa essa config em vez da de debug. Se `key.properties` não existir (clone novo, CI sem o arquivo), cai de volta para a assinatura de debug em vez de quebrar o build.
+
+### Validado
+- `flutter build appbundle --release` — gera `app-release.aab` (formato exigido pela Play Store).
+- `flutter build apk --release` — gera `app-release.apk`; conferido com `apksigner verify --print-certs` que o certificado usado é o do `upload-keystore.jks` (SHA-256 bate), não mais o de debug.
+
+### ⚠️ Importante — backup
+`android/upload-keystore.jks` e a senha em `android/key.properties` não têm cópia em nenhum outro lugar. **Fazer backup de ambos agora** (ex.: gerenciador de senhas + um local seguro fora deste computador) — perder o keystore antes de ativar o Play App Signing no Play Console pode impedir a publicação de futuras atualizações do mesmo app.
+
 ## 2026-07-22 (2) — Correção: build Android quebrado (Windows, celular, APK)
 
 O app não rodava no Windows, não rodava direto no celular e não gerava APK (nem debug nem release) — não era um problema do ambiente do usuário, era configuração desatualizada do projeto. Ver diagnóstico completo e todas as correções em [07-engenharia.md](07-engenharia.md#ambiente-de-build-windows--leia-antes-de-configurar-uma-máquina-nova).
