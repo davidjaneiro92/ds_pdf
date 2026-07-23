@@ -26,13 +26,18 @@ subprojects {
 // sempre declaram) como namespace de fallback, só para quem realmente não
 // declarou um.
 subprojects {
-    afterEvaluate {
+    fun applyNamespaceFallback() {
         val androidExtension = extensions.findByName("android")
         if (androidExtension is com.android.build.gradle.BaseExtension) {
             if (androidExtension.namespace == null) {
                 androidExtension.namespace = project.group.toString()
             }
         }
+    }
+    if (project.state.executed) {
+        applyNamespaceFallback()
+    } else {
+        afterEvaluate { applyNamespaceFallback() }
     }
 }
 
