@@ -156,7 +156,7 @@ class MyFilesView extends StatelessWidget {
         child: ChoiceChip(
           label: Text(label),
           selected: selecionado,
-          selectedColor: CustomColors.blue.shade100,
+          selectedColor: CustomColors.primary.shade100,
           onSelected: (_) => onTap(),
         ),
       ),

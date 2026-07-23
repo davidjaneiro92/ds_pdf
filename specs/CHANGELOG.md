@@ -2,6 +2,23 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-07-23 (5) — Identidade visual: cor da logo + tema claro/escuro
+
+Pedido do usuário: as cores do app deveriam seguir a cor da logo/ícone, e deveria existir um botão de claro/escuro no canto direito da barra superior.
+
+### Adicionado
+- **Cor de marca extraída do ícone** (`assets/icon/icon.png`, ciano `#01DEEA`, obtida por amostragem de pixel via `System.Drawing` já que o ambiente não tinha Python/PIL disponível). `CustomColors.blue` (era um azul genérico, `0xFF357be9`, sem relação com a logo) renomeado para `CustomColors.primary`/`CustomColors.brand` e atualizado em todos os 6 arquivos que o usavam (`custom_app_bar.dart`, `loading.dart`, `text_to_pdf_view.dart`, `my_files_view.dart`, `pdf_editor_view.dart`, `scanner_view.dart`) e no spinner da splash screen (antes com um azul ainda mais antigo hardcoded, `0xFF357be9`, dessincronizado do resto do app).
+- Como o ciano da marca é uma cor clara, `foregroundColor`/texto branco sobre ela (app bar, botões, badge de número de página no Scanner) foi trocado para `Colors.black87` — o branco anterior (herdado da paleta azul escura antiga) tinha contraste ruim sobre o novo ciano.
+- **Tema claro/escuro real**: `lib/src/config/app_theme.dart` (`AppTheme.light`/`AppTheme.dark`, ambos via `ColorScheme.fromSeed(seedColor: CustomColors.brand)`) e `lib/src/config/theme_controller.dart` (`ThemeController`, `GetxController` com `Rx<ThemeMode>`, padrão `ThemeMode.system`, persistido em Hive na nova box `app_settings`). `main.dart` inicializa e registra o controller antes do `runApp`, e passa `theme`/`darkTheme`/`themeMode` ao `GetMaterialApp` dentro de um `Obx` para reagir à troca em tempo real.
+- **Botão de alternância de tema** no canto direito do `CustomAppBar` (ícone de sol/lua conforme o tema ativo), chamando `ThemeController.alternar()`.
+- Os 3 cards da tela inicial (`select_PDF_type_view.dart`), antes com fundo branco fixo (`Colors.white`), agora usam `Theme.of(context).colorScheme.surface`, para não ficarem como caixas brancas destoantes sobre o fundo escuro do tema dark.
+
+### Validado
+- `flutter analyze`: 0 erros, 22 avisos pré-existentes (mesma contagem de antes).
+- `flutter test`: smoke test passando (`widget_test.dart` atualizado para registrar `ThemeController` e inicializar a nova box Hive, mesmo padrão já usado para `PdfDocumentsRepository`).
+- `flutter build web --release`: build de produção completa sem erros; servida estaticamente e inspecionada via console/rede do navegador — os 3 boxes Hive (`pdf_documents`, `pdf_folders`, `app_settings`) abrem sem exceção, confirmando que `ThemeController.init()` roda corretamente, e nenhum erro aparece no console.
+- **Renderização visual não confirmada neste ambiente**: o Browser pane usado nesta sessão não conseguiu pintar o Flutter Web (nem em modo debug via `flutter run -d web-server`, nem no build de release servido estaticamente — em ambos os casos a `<flutter-view>` nunca ganha tamanho e nenhum `<canvas>` chega a ser criado, apesar do app inicializar e não lançar erros). Já era uma limitação conhecida deste ambiente, documentada antes desta sessão de mudanças — não é causada pelo tema novo. **O usuário precisa conferir visualmente** (rodando no celular, emulador, ou `flutter run -d chrome` numa máquina com navegador de verdade) se as cores e a troca de tema estão como esperado.
+
 ## 2026-07-23 (4) — Correção: travamento do Scanner, botão Meus Arquivos oculto, campo de texto maior
 
 Feedback do usuário testando o app já publicado: o Scanner travava "no infinito" ao carregar a página escaneada (impedindo gerar o PDF), a categoria "Meus Arquivos" não fazia sentido para o usuário, e o campo de texto do Texto→PDF era pequeno demais para digitar confortavelmente.

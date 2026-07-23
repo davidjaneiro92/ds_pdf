@@ -13,7 +13,7 @@ class LoadingWidget extends StatelessWidget {
         color: Colors.black.withOpacity(0.5), // Fundo escuro
         child: Center(
           child: CircularProgressIndicator(
-            color: CustomColors.blue,
+            color: CustomColors.primary,
           ),
         ),
       )

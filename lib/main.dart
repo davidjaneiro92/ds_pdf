@@ -1,6 +1,8 @@
 import 'package:ds_pdf/src/components/custom_error_widget.dart';
 import 'package:ds_pdf/src/components/loading/controller/loading_controller.dart';
 import 'package:ds_pdf/src/components/loading/view/loading.dart';
+import 'package:ds_pdf/src/config/app_theme.dart';
+import 'package:ds_pdf/src/config/theme_controller.dart';
 import 'package:ds_pdf/src/enum/pages_routes.dart';
 import 'package:ds_pdf/src/pages/my_files/controller/my_files_controller.dart';
 import 'package:ds_pdf/src/pages/scanner/controller/scanner_controller.dart';
@@ -33,6 +35,10 @@ void main() async {
   await pdfDocumentsRepository.init();
   Get.put(pdfDocumentsRepository);
 
+  final themeController = ThemeController();
+  await themeController.init();
+  Get.put(themeController);
+
   Get.put(LoadingController());
   Get.put<SelectPdfTypeContollerAbstract>(SelectPdfTypeContoller());
   Get.put(ScannerController());
@@ -46,28 +52,25 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
+    final themeController = Get.find<ThemeController>();
     return OKToast(
-      child: GetMaterialApp(
-        title: 'DS PDF',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF003A88)),
-          scaffoldBackgroundColor: Colors.white.withAlpha(190),
-          useMaterial3: true,
-        ),
-        debugShowCheckedModeBanner: false,
-        initialRoute: PagesRoutes.splashScreen.path,
-        getPages: AppPages.pages,
-        builder: (context, child) {
-
-
-          return Stack(
-            children: [
-              child!, // A tela atual
-              LoadingWidget(), // Loading global
-            ],
-          );
-        },
-      ),
+      child: Obx(() => GetMaterialApp(
+            title: 'DS PDF',
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeController.themeMode.value,
+            debugShowCheckedModeBanner: false,
+            initialRoute: PagesRoutes.splashScreen.path,
+            getPages: AppPages.pages,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  child!, // A tela atual
+                  LoadingWidget(), // Loading global
+                ],
+              );
+            },
+          )),
     );
   }
 }

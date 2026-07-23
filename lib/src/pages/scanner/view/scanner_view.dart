@@ -56,8 +56,8 @@ class ScannerView extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: CustomColors.blue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: CustomColors.primary,
+                        foregroundColor: Colors.black87,
                       ),
                       onPressed: () => controller.gerarPDF(),
                       icon: const Icon(Icons.picture_as_pdf_outlined),
@@ -90,8 +90,8 @@ class ScannerView extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: CustomColors.blue,
-                foregroundColor: Colors.white,
+                backgroundColor: CustomColors.primary,
+                foregroundColor: Colors.black87,
               ),
               onPressed: () => controller.escanearDocumento(),
               icon: const Icon(Icons.camera_alt_outlined),
@@ -138,10 +138,10 @@ class _PaginaThumbnail extends StatelessWidget {
             left: 4,
             child: CircleAvatar(
               radius: 12,
-              backgroundColor: CustomColors.blue,
+              backgroundColor: CustomColors.primary,
               child: Text(
                 '$numero',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(color: Colors.black87, fontSize: 12),
               ),
             ),
           ),

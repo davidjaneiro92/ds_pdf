@@ -22,11 +22,7 @@ Usuários finais (pessoa física ou pequenos negócios) que precisam digitalizar
 | Texto → PDF | ✅ Completo | Editor de texto multilinha com escolha de fonte (Helvetica/Times/Courier) e alinhamento, cabeçalho e rodapé opcionais; gera PDF paginado automaticamente e compartilha. |
 | Meus Arquivos | ✅ Completo (⚠️ botão oculto na tela inicial desde 2026-07-23) | Lista todos os PDFs gerados pelo app (com metadados em Hive), pesquisa por nome, pastas, favoritos, compartilhar, renomear e excluir. Código, rota e persistência continuam intactos; só o card de acesso em `select_PDF_type_view.dart` foi comentado, a pedido do usuário (não fazia sentido ter essa categoria separada podendo adicionar imagens direto no PDF). |
 | Editor de PDF | ✅ Completo | A partir de um documento em Meus Arquivos: reordenar páginas, excluir páginas e carimbar uma assinatura desenhada pelo usuário. Sem marca d'água (fora do escopo, a pedido do usuário) e sem assinatura digital criptográfica (é um carimbo de imagem). Salva sempre como um PDF novo, sem sobrescrever o original. |
-
-### Planejadas (roadmap — ver [07-engenharia.md](07-engenharia.md))
-| Funcionalidade | Status |
-|---|---|
-| Dark mode | 📋 Planejado, não implementado |
+| Identidade visual (cor da logo) + tema claro/escuro | ✅ Completo | Cor de destaque do app (app bar, botões) trocada para o ciano extraído do ícone (`assets/icon/icon.png`), substituindo o azul genérico original. Botão de alternância claro/escuro no canto direito da barra superior, com preferência persistida em Hive. |
 
 ## Roadmap resumido
 
@@ -34,4 +30,5 @@ Usuários finais (pessoa física ou pequenos negócios) que precisam digitalizar
 2. **Sessão 2** (concluída) — Texto → PDF (editor com fontes, alinhamento, cabeçalho/rodapé).
 3. **Sessão 3** (concluída) — Meus Arquivos (listagem, pesquisa, pastas, favoritos, renomear, excluir), com a primeira camada de persistência do projeto (Hive) e os primeiros `models`/`repositories`.
 4. **Sessão 4** (concluída) — Editor de PDF (reordenar/excluir páginas, assinatura), usando `syncfusion_flutter_pdf` para preservar a qualidade das páginas originais — ver aviso de licenciamento em [07-engenharia.md](07-engenharia.md#riscos).
-5. **Futuro** — dark mode, testes automatizados mais amplos, marca d'água (descartada nesta sessão, pode voltar como melhoria opcional), reposicionamento arrastável da assinatura.
+5. **Sessão 5** (concluída, 2026-07-23) — correção do travamento do Scanner, botão Meus Arquivos oculto, campo de texto maior em Texto→PDF, identidade visual seguindo a cor da logo e tema claro/escuro.
+6. **Futuro** — testes automatizados mais amplos, marca d'água (descartada nesta sessão, pode voltar como melhoria opcional), reposicionamento arrastável da assinatura.

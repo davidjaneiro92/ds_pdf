@@ -17,8 +17,8 @@ class PdfEditorView extends StatelessWidget {
       appBar: const CustomAppBar(tela: 'Editor de PDF', golBack: true),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => controller.salvar(),
-        backgroundColor: CustomColors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: CustomColors.primary,
+        foregroundColor: Colors.black87,
         icon: const Icon(Icons.save_outlined),
         label: const Text('Salvar'),
       ),

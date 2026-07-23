@@ -19,7 +19,9 @@ ds_pdf/
 │       │       ├── controller/loading_controller.dart
 │       │       └── view/loading.dart
 │       ├── config/
-│       │   └── custom_colors.dart  # Paleta de cores do app (MaterialColor CustomColors.blue)
+│       │   ├── custom_colors.dart  # Paleta de cores do app (ciano da logo — MaterialColor CustomColors.primary)
+│       │   ├── app_theme.dart      # ThemeData claro/escuro (ColorScheme.fromSeed a partir de CustomColors.brand)
+│       │   └── theme_controller.dart  # GetxController do tema ativo (ThemeMode), persistido em Hive (box "app_settings")
 │       ├── enum/
 │       │   ├── pages_routes.dart          # Enum com os paths de todas as rotas nomeadas
 │       │   ├── pdf_font_option.dart       # Fontes disponíveis para Texto→PDF (mapeadas para pw.Font)
@@ -66,7 +68,7 @@ ds_pdf/
 ## O que cada pasta representa
 
 - **`components/`** — qualquer widget usado por mais de uma tela, ou que encapsula um comportamento transversal (toast, loading, tratamento de erro). Não conhece regra de negócio de nenhuma feature específica.
-- **`config/`** — configuração visual/global do app (hoje só cores; é o lugar natural para um futuro `theme.dart` com suporte a dark mode).
+- **`config/`** — configuração visual/global do app: paleta de cores, `ThemeData` claro/escuro e o controller que decide qual tema está ativo.
 - **`enum/`** — enums compartilhados por todo o app: rotas, e as opções de fonte/alinhamento usadas pela feature Texto→PDF. Qualquer novo enum de domínio (ex.: tipo de filtro do scanner) deveria entrar aqui.
 - **`models/`** — estruturas de dados puras, reutilizadas entre o repositório e as features que exibem/editam esses dados (hoje só `my_files/`, mas os 3 controllers geradores também usam `PdfDocumentModel` indiretamente via o repositório).
 - **`pages/<feature>/`** — cada funcionalidade do app (Scanner, Seleção de tipo, Splash, Texto→PDF, Meus Arquivos, Editor de PDF) é uma pasta isolada com seu próprio controller/view/abstract. Isso facilita adicionar ou remover uma feature inteira sem tocar em outras.

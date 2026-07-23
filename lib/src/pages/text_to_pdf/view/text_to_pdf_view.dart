@@ -83,8 +83,8 @@ class TextToPdfView extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: CustomColors.blue,
-                  foregroundColor: Colors.white,
+                  backgroundColor: CustomColors.primary,
+                  foregroundColor: Colors.black87,
                 ),
                 onPressed: () => controller.gerarPDF(),
                 icon: const Icon(Icons.picture_as_pdf_outlined),

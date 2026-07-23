@@ -8,6 +8,7 @@ import 'package:hive/hive.dart';
 
 import 'package:ds_pdf/main.dart';
 import 'package:ds_pdf/src/components/loading/controller/loading_controller.dart';
+import 'package:ds_pdf/src/config/theme_controller.dart';
 import 'package:ds_pdf/src/pages/scanner/controller/scanner_controller.dart';
 import 'package:ds_pdf/src/pages/select_PDF_type/abstract/select_PDF_type_contoller_abstract.dart';
 import 'package:ds_pdf/src/pages/select_PDF_type/controller/select_PDF_type_contoller.dart';
@@ -26,9 +27,11 @@ void main() {
     // sem runAsync, `Hive.openBox` trava para sempre.
     final tempDir = Directory.systemTemp.createTempSync('ds_pdf_test');
     final pdfDocumentsRepository = PdfDocumentsRepository();
+    final themeController = ThemeController();
     await tester.runAsync(() async {
       Hive.init(tempDir.path);
       await pdfDocumentsRepository.init();
+      await themeController.init();
     });
     addTearDown(() => tester.runAsync(() async {
           await Hive.close();
@@ -44,6 +47,7 @@ void main() {
     // tester.runAsync() acima, correndo o mesmo risco de travar. Como este
     // smoke test nunca navega até MyFilesView, o controller não é necessário.
     Get.put(pdfDocumentsRepository);
+    Get.put(themeController);
     Get.put(LoadingController());
     Get.put<SelectPdfTypeContollerAbstract>(SelectPdfTypeContoller());
     Get.put(ScannerController());
