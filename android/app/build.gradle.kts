@@ -15,7 +15,12 @@ android {
     // cópia da 34.0.0 já instalada (funcionalmente equivalente para este
     // projeto) para satisfazer a checagem do Android Gradle Plugin.
     compileSdk = 35
-    ndkVersion = flutter.ndkVersion
+    // NDK pedido por vários plugins (flutter_doc_scanner, image_picker_android,
+    // path_provider_android, permission_handler_android, printing, uri_to_file,
+    // flutter_plugin_android_lifecycle). Era só um aviso (não bloqueava o
+    // build), mas fixar aqui evita o Gradle baixar/gerenciar duas versões de
+    // NDK e elimina o aviso.
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
