@@ -17,16 +17,17 @@ class TextToPdfView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(tela: 'Texto para PDF', golBack: true),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Expanded(
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5,
               child: CustomTextField(
                 label: 'Texto',
                 controller: controller.corpoController,
-                maxLines: null,
                 maxLength: null,
+                expands: true,
               ),
             ),
             CustomTextField(

@@ -6,11 +6,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
-import 'package:uri_to_file/uri_to_file.dart';
 
 import '../../../components/custom_toast.dart';
 import '../../../components/loading/controller/loading_controller.dart';
 import '../../../repositories/pdf_documents_repository.dart';
+import '../../../services/content_uri_reader.dart';
 import '../abstract/scanner_controller_abstract.dart';
 
 class ScannerController extends GetxController
@@ -46,8 +46,7 @@ class ScannerController extends GetxController
       final pdf = pw.Document();
 
       for (final uri in paginas) {
-        final arquivo = await toFile(uri);
-        final bytes = await arquivo.readAsBytes();
+        final bytes = await ContentUriReader.readBytes(uri);
         final image = pw.MemoryImage(bytes);
 
         pdf.addPage(

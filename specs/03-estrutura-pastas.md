@@ -52,8 +52,10 @@ ds_pdf/
 │       │       └── view/text_to_pdf_view.dart
 │       ├── pages_routes/
 │       │   └── app_pages.dart      # Lista de GetPage consumida pelo GetMaterialApp
-│       └── repositories/
-│           └── pdf_documents_repository.dart  # Único repositório do projeto; encapsula as boxes Hive
+│       ├── repositories/
+│       │   └── pdf_documents_repository.dart  # Único repositório do projeto; encapsula as boxes Hive
+│       └── services/               # Integrações com APIs nativas via platform channel (sem estado, sem GetX)
+│           └── content_uri_reader.dart  # Lê bytes de URIs "content://" (Android) via ContentResolver nativo
 ├── test/
 │   └── widget_test.dart            # Smoke test: app inicializa e mostra a splash screen
 ├── android/, ios/, linux/, macos/, web/, windows/   # Boilerplate de plataforma do `flutter create`
@@ -70,4 +72,5 @@ ds_pdf/
 - **`pages/<feature>/`** — cada funcionalidade do app (Scanner, Seleção de tipo, Splash, Texto→PDF, Meus Arquivos, Editor de PDF) é uma pasta isolada com seu próprio controller/view/abstract. Isso facilita adicionar ou remover uma feature inteira sem tocar em outras.
 - **`pages_routes/`** — ponto único onde as rotas de todas as features são registradas no `GetMaterialApp`.
 - **`repositories/`** — acesso a dados persistidos (Hive). Isola qualquer controller de saber como/onde os dados são guardados.
+- **`services/`** — integrações com código nativo (platform channels), sem estado de UI/GetX. Hoje só `ContentUriReader`, que substitui o pacote `uri_to_file` (removido — travava indefinidamente em URIs `content://` em aparelhos reais) por uma chamada direta ao `ContentResolver` do Android via `MainActivity.kt`.
 - **`assets/img/`** — todos os assets de imagem do app (minúsculo, conforme declarado em `pubspec.yaml`; corrigido nesta sessão — ver [08-auditoria.md](08-auditoria.md)).

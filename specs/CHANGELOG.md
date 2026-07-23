@@ -2,6 +2,22 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-07-23 (4) — Correção: travamento do Scanner, botão Meus Arquivos oculto, campo de texto maior
+
+Feedback do usuário testando o app já publicado: o Scanner travava "no infinito" ao carregar a página escaneada (impedindo gerar o PDF), a categoria "Meus Arquivos" não fazia sentido para o usuário, e o campo de texto do Texto→PDF era pequeno demais para digitar confortavelmente.
+
+### Corrigido
+- **Travamento infinito no Scanner**: causa raiz era o pacote `uri_to_file`, que travava indefinidamente ao resolver URIs `content://` retornadas pelo scanner nativo em aparelhos Android reais — já sinalizado como risco em [07-engenharia.md](07-engenharia.md). Removido e substituído por um `MethodChannel` próprio (`com.dsdevsolucoes.dspdf/content_resolver`) implementado em `MainActivity.kt`, que lê os bytes via `ContentResolver.openInputStream()` nativo. No lado Dart, novo serviço `ContentUriReader` (`lib/src/services/content_uri_reader.dart`, primeira pasta `services/` do projeto) encapsula a chamada com timeout de 15s como rede de segurança. `ScannerController.gerarPDF()` e a miniatura de página em `ScannerView` (`_PaginaThumbnail`, agora com `Image.memory` em vez de `Image.file`) passaram a usar esse serviço; a miniatura também ganhou um estado de erro visível (ícone de imagem quebrada) em vez de deixar o spinner girando para sempre em caso de falha de leitura.
+
+### Alterado
+- **Botão "Meus Arquivos" comentado** (não removido) em `select_PDF_type_view.dart`, a pedido do usuário — não fazia sentido ter essa categoria separada podendo adicionar imagens direto no PDF. Rota, `MyFilesView`/`MyFilesController` e `PdfDocumentsRepository` continuam intactos e ativos: os 3 fluxos de geração de PDF (Galeria, Câmera, Texto) continuam registrando os documentos gerados no Hive normalmente, mesmo sem tela para visualizá-los (decisão explícita do usuário, mantendo o histórico salvo para uma eventual reativação futura do botão).
+- **Campo de texto do corpo em Texto→PDF ampliado** para ocupar pelo menos metade da altura da tela (`SizedBox(height: MediaQuery.of(context).size.height * 0.5)`), envolvendo o `body` da tela num `SingleChildScrollView` para acomodar o campo maior. Novo parâmetro `expands` (padrão `false`) adicionado a `CustomTextField` para viabilizar isso (usa `TextFormField.expands`). Cabeçalho e rodapé não foram alterados, a pedido explícito do usuário.
+
+### Validado
+- `flutter analyze`: 0 erros, 22 avisos pré-existentes (mesma contagem de antes desta sessão).
+- `flutter test`: smoke test continua passando.
+- **Não validado em aparelho físico real** — a correção do Scanner elimina a causa raiz identificada (dependência de terceiros travando na leitura de `content://`), mas o teste em hardware Android real, que foi onde o problema original foi reportado, ainda precisa ser feito pelo usuário.
+
 ## 2026-07-23 (3) — Correção: erro real de upload no Play Console (targetSdk)
 
 Primeiro envio real do `.aab` ao Play Console (teste interno) retornou 1 erro bloqueador e 2 avisos.

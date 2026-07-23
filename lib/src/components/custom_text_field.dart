@@ -20,6 +20,7 @@ class CustomTextField extends StatefulWidget {
   final Function(String)? onChanged;
   final int? maxLength;
   final int? maxLines;
+  final bool expands;
 
   const CustomTextField({
     Key? key,
@@ -41,6 +42,7 @@ class CustomTextField extends StatefulWidget {
     this.onChanged,
     this.maxLength = 20,
     this.maxLines = 1,
+    this.expands = false,
 
   }) : super(key: key);
 
@@ -80,7 +82,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
         },
         onEditingComplete: widget.onEditingComplete,
         maxLength: widget.maxLength,
-        maxLines: widget.maxLines,
+        maxLines: widget.expands ? null : widget.maxLines,
+        expands: widget.expands,
         enabled: widget.enabled,
         keyboardType: widget.keyboardType,
         controller: widget.controller,

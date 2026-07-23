@@ -1,11 +1,11 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:uri_to_file/uri_to_file.dart';
 
 import '../../../components/custom_app_bar.dart';
 import '../../../config/custom_colors.dart';
+import '../../../services/content_uri_reader.dart';
 import '../controller/scanner_controller.dart';
 
 class ScannerView extends StatelessWidget {
@@ -118,14 +118,19 @@ class _PaginaThumbnail extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Container(color: Colors.grey.shade200),
-          FutureBuilder<File>(
-            future: toFile(uri),
+          FutureBuilder<Uint8List>(
+            future: ContentUriReader.readBytes(uri),
             builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Icon(Icons.broken_image_outlined, color: Colors.red),
+                );
+              }
               if (snapshot.connectionState != ConnectionState.done ||
                   !snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
-              return Image.file(snapshot.data!, fit: BoxFit.cover);
+              return Image.memory(snapshot.data!, fit: BoxFit.cover);
             },
           ),
           Positioned(

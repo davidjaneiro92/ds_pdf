@@ -106,33 +106,39 @@ class SelectPdfTypeView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          Get.toNamed(PagesRoutes.myFilesView.path);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          width: 250,
-                          height: 190,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Column(
-                            children: [
-                              Icon(
-                                Icons.folder_outlined,
-                                size: 150,
-                                color: Colors.black54,
-                              ),
-                              Text("Meus Arquivos"),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Botão "Meus Arquivos" removido da tela a pedido do
+                    // usuário (não faz sentido ter essa categoria separada
+                    // já que dá pra adicionar imagens direto no PDF).
+                    // Mantido comentado (não excluído) para poder ser
+                    // reativado facilmente no futuro; a rota, a view e o
+                    // repositório continuam intactos.
+                    // Padding(
+                    //   padding: const EdgeInsets.all(8.0),
+                    //   child: GestureDetector(
+                    //     onTap: () {
+                    //       Get.toNamed(PagesRoutes.myFilesView.path);
+                    //     },
+                    //     child: Container(
+                    //       padding: const EdgeInsets.all(8.0),
+                    //       width: 250,
+                    //       height: 190,
+                    //       decoration: BoxDecoration(
+                    //         color: Colors.white,
+                    //         borderRadius: BorderRadius.circular(12),
+                    //       ),
+                    //       child: const Column(
+                    //         children: [
+                    //           Icon(
+                    //             Icons.folder_outlined,
+                    //             size: 150,
+                    //             color: Colors.black54,
+                    //           ),
+                    //           Text("Meus Arquivos"),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ],

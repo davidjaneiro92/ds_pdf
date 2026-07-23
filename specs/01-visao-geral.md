@@ -20,7 +20,7 @@ Usuários finais (pessoa física ou pequenos negócios) que precisam digitalizar
 | Foto (galeria) → PDF | ✅ Completo | Seleciona múltiplas imagens da galeria e gera um PDF (uma imagem por página), com compartilhamento. |
 | Scanner por câmera → PDF | ✅ Completo | Usa o scanner nativo do sistema (ML Kit no Android, VisionKit no iOS) com detecção de bordas, correção de perspectiva e filtros automáticos; monta as páginas capturadas em um PDF e compartilha. |
 | Texto → PDF | ✅ Completo | Editor de texto multilinha com escolha de fonte (Helvetica/Times/Courier) e alinhamento, cabeçalho e rodapé opcionais; gera PDF paginado automaticamente e compartilha. |
-| Meus Arquivos | ✅ Completo | Lista todos os PDFs gerados pelo app (com metadados em Hive), pesquisa por nome, pastas, favoritos, compartilhar, renomear e excluir. |
+| Meus Arquivos | ✅ Completo (⚠️ botão oculto na tela inicial desde 2026-07-23) | Lista todos os PDFs gerados pelo app (com metadados em Hive), pesquisa por nome, pastas, favoritos, compartilhar, renomear e excluir. Código, rota e persistência continuam intactos; só o card de acesso em `select_PDF_type_view.dart` foi comentado, a pedido do usuário (não fazia sentido ter essa categoria separada podendo adicionar imagens direto no PDF). |
 | Editor de PDF | ✅ Completo | A partir de um documento em Meus Arquivos: reordenar páginas, excluir páginas e carimbar uma assinatura desenhada pelo usuário. Sem marca d'água (fora do escopo, a pedido do usuário) e sem assinatura digital criptográfica (é um carimbo de imagem). Salva sempre como um PDF novo, sem sobrescrever o original. |
 
 ### Planejadas (roadmap — ver [07-engenharia.md](07-engenharia.md))
