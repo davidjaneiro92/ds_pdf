@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
@@ -24,8 +25,20 @@ class ScannerController extends GetxController
 
     try {
       final resultado = await _scanner.getScannedDocumentAsImages(page: 20);
+      debugPrint('ScannerController: resultado do scan = $resultado');
       if (resultado != null && resultado.images.isNotEmpty) {
-        paginas.assignAll(resultado.images);
+        paginas.addAll(resultado.images);
+      } else {
+        // O usuário cancelou o scanner, ou o scanner nativo (Google Play
+        // Services) falhou internamente sem lançar exceção — acontece em
+        // alguns aparelhos ao escanear mais de uma vez na mesma sessão do
+        // app (bug conhecido do play-services-mlkit-document-scanner, fora
+        // do nosso controle). Avisamos o usuário em vez de falhar em
+        // silêncio, para não parecer que o app travou.
+        CustomToast().showToasts(
+          messagem: 'A página não foi escaneada. Tente novamente.',
+          status: status.warner,
+        );
       }
     } catch (e) {
       CustomToast().showToasts(
@@ -40,13 +53,19 @@ class ScannerController extends GetxController
     if (paginas.isEmpty) return;
 
     final loadingController = Get.find<LoadingController>();
-    loadingController.showLoading();
+    loadingController.showLoading(mensagem: 'Gerando PDF', cancelavel: true);
 
     try {
       final pdf = pw.Document();
+      final total = paginas.length;
 
-      for (final uri in paginas) {
-        final bytes = await ContentUriReader.readBytes(uri);
+      for (var i = 0; i < total; i++) {
+        if (loadingController.foiCancelado) {
+          throw GeracaoCanceladaException();
+        }
+        loadingController.atualizarProgresso(i + 1, total);
+
+        final bytes = await ContentUriReader.readBytes(paginas[i]);
         final image = pw.MemoryImage(bytes);
 
         pdf.addPage(
@@ -69,12 +88,19 @@ class ScannerController extends GetxController
         fileName: filename,
         path: file.path,
         createdAt: DateTime.now(),
+        pageCount: paginas.length,
       );
 
       await Printing.sharePdf(bytes: bytes, filename: filename);
 
       limparPaginas();
+    } on GeracaoCanceladaException {
+      CustomToast().showToasts(
+        messagem: 'Geração de PDF cancelada.',
+        status: status.warner,
+      );
     } catch (e) {
+      debugPrint('ScannerController.gerarPDF falhou: $e');
       CustomToast().showToasts(
         messagem: 'Não foi possível gerar o PDF.',
         status: status.error,

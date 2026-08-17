@@ -35,7 +35,10 @@ class TextToPdfController extends GetxController
     }
 
     final loadingController = Get.find<LoadingController>();
-    loadingController.showLoading();
+    // Sem progresso por página aqui: pw.MultiPage pagina o texto
+    // internamente numa única chamada, então não há como reportar
+    // "página N de M" nem cancelar no meio como no Scanner/Galeria.
+    loadingController.showLoading(mensagem: 'Gerando PDF');
 
     try {
       final cabecalho = cabecalhoController.text.trim();
@@ -73,6 +76,7 @@ class TextToPdfController extends GetxController
         fileName: filename,
         path: file.path,
         createdAt: DateTime.now(),
+        pageCount: pdf.document.pdfPageList.pages.length,
       );
 
       await Printing.sharePdf(bytes: bytes, filename: filename);

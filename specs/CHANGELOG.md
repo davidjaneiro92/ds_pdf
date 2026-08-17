@@ -2,6 +2,36 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-08-16 — Correção real do bug do Scanner (`file://`) + replanejamento visual (telas simples)
+
+Sessão retomada depois de um hiato: o usuário reportou de novo erro ao escanear/gerar PDF (miniatura quebrada, "Não foi possível gerar o PDF."). Testado ao vivo no aparelho do usuário via `flutter run` + `adb logcat`, o que permitiu achar a causa raiz real pela primeira vez (sessões anteriores só tinham corrigido a causa de um sintoma parecido, mas diferente — o travamento do `uri_to_file`). Na sequência, o usuário enviou um documento de referência (zip com um mockup HTML/CSS de replanejamento visual completo do app, gerado externamente) e pediu para implementar as telas mais simples primeiro.
+
+### Corrigido
+- **Bug real do Scanner**: `ContentUriReader.readBytes` não tratava URIs `file://` (só `content://` e caminho puro) — em alguns aparelhos/versões do Play Services o scanner devolve `file:///data/.../pagina.jpg`, que caía no ramo errado e virava `PathNotFoundException` toda vez. Corrigido convertendo `file://` para caminho real via `Uri.parse(...).toFilePath()`. Coberto por 4 testes novos em [test/content_uri_reader_test.dart](../test/content_uri_reader_test.dart) — ver [07-engenharia.md](07-engenharia.md#riscos) para o relato completo da investigação.
+- **`ScannerController.escanearDocumento()` usava `paginas.assignAll(...)` em vez de `addAll(...)`**: cada novo scan **substituía** a lista de páginas em vez de acrescentar, perdendo páginas já escaneadas. Bug real e independente do de cima, encontrado na mesma investigação.
+- **Ambiente da máquina**: disco C: estava com 352 MB livres porque `GRADLE_USER_HOME` (configurado numa sessão anterior para apontar pro drive E:) não estava sendo herdado pelo shell usado para os builds, então o cache do Gradle (~1,9 GB) voltou a crescer em `C:\Users\<usuário>\.gradle`; um build interrompido por falta de memória corrompeu esse cache. Cache duplicado removido, `GRADLE_USER_HOME` exportado explicitamente nos comandos de build desta sessão em diante.
+
+### Adicionado — replanejamento visual (primeira metade: telas simples)
+A partir de `especificacao/replanejamento/` (documento de referência recebido do usuário, não versionado no repo). Decisões tomadas com o usuário antes de começar: adotar a paleta azul-acinzentado do próprio documento (em vez de manter o ciano da logo, por causa da crítica de contraste), reativar o acesso a Meus Arquivos via "Recentes" (não um botão dedicado), e implementar telas simples primeiro (Início/Scanner/Meus Arquivos/progresso/estados vazios) — deixando o editor de texto rico e o Editor de PDF para depois.
+
+- **Nova paleta** ([custom_colors.dart](../lib/src/config/custom_colors.dart)): tokens claros/escuros exatos do documento (fundo, superfície, texto, divisor, destaque, neutros, raios de borda), substituindo o ciano fixo usado antes.
+- **`AppTheme` reescrito** ([app_theme.dart](../lib/src/config/app_theme.dart)) sem `ColorScheme.fromSeed` — monta o `ColorScheme` manualmente a partir da nova paleta, define `textTheme` (Barlow Condensed/Barlow via novo pacote `google_fonts`), `cardTheme`, `elevatedButtonTheme`, `outlinedButtonTheme`, `dialogTheme`, `inputDecorationTheme`.
+- **`CustomAppBar` reescrito**: fundo neutro com linha divisória (não mais faixa colorida cheia), título à esquerda, `trailing` opcional, e o bug histórico do `golBack` corrigido (agora realmente controla se o botão de voltar aparece).
+- **Tela Início redesenhada** ([select_PDF_type_view.dart](../lib/src/pages/select_PDF_type/view/select_PDF_type_view.dart)): cabeçalho próprio (título + busca + tema), card primário "Escanear documento", grade Galeria/Texto, e seção **"Recentes"** (últimos 3 PDFs com "N pág · tamanho · data" + "Ver todos" → Meus Arquivos). `SelectPdfTypeContoller` ganhou `recentes`/`carregarRecentes()`.
+- **Scanner redesenhado** ([scanner_view.dart](../lib/src/pages/scanner/view/scanner_view.dart)): contagem de páginas na barra, grade com miniatura numerada + item tracejado "Adicionar" (`DottedBorderBox`, `CustomPaint` próprio, sem depender de pacote externo), rodapé avisando onde o PDF vai ser salvo.
+- **Meus Arquivos**: itens da lista agora mostram "N pág · tamanho · data" em vez de só a data; chips de filtro ganharam contagem ("Todos · 12", "Favoritos · 3", "<pasta> · N" — novos `totalDocumentos`/`totalFavoritos`/`contagemPasta` no `MyFilesController`); estado vazio "de verdade" (nenhum documento salvo) agora explica o que a tela faz e oferece "Escanear documento"/"Escolher da galeria" — distinto do estado "sem resultado" de um filtro/busca sem match.
+- **Progresso determinado e cancelável na geração de PDF** ([loading_controller.dart](../lib/src/components/loading/controller/loading_controller.dart) + [loading.dart](../lib/src/components/loading/view/loading.dart), reescritos): diálogo com "Página N de M" + barra + porcentagem + botão Cancelar, usado por `ScannerController` e `SelectPdfTypeContoller` (ambos iteram página a página); `TextToPdfController` usa o modo indeterminado, já que `pw.MultiPage` pagina o texto internamente numa única chamada, sem progresso por página possível. Cancelar lança `GeracaoCanceladaException`, tratada com um toast neutro em vez do toast de erro genérico.
+- **`PdfDocumentModel.pageCount`** (novo campo, default `0` para documentos antigos/reconciliados do disco): os 3 controllers geradores agora passam a contagem real de páginas para `registrarDocumento(...)`, usada nos metadados de Início/Meus Arquivos.
+- **`lib/src/utils/` (pasta nova)**: `Formatters` — tamanho de arquivo, data relativa ("hoje HH:mm"/"ontem HH:mm"/"D mês"), formatação de metadados de documento; usado por Início e Meus Arquivos.
+
+### Não corrigido / adiado (escopo combinado com o usuário)
+- Texto→PDF (editor rico com barra de formatação e paginação A4 ao vivo) e Editor de PDF (visual) — segunda metade do replanejamento, telas R4/R4b/R6 do documento de referência.
+
+### Validado
+- `flutter analyze`: 0 erros, sem novos avisos além dos 19 pré-existentes (contagem mudou de 22 para 19 ao longo da sessão por correções incidentais de lints tocados).
+- `flutter test`: smoke test + 4 novos testes de `ContentUriReader` — todos passando.
+- **Testado ao vivo no aparelho do usuário** (Redmi, Android 13, MIUI) via `flutter run` + `adb logcat`: instalado, scan completou sem travar, correção do `file://` confirmada pelo próprio log (`PathNotFoundException` parou de aparecer). Redesenho visual instalado no aparelho ao final da sessão para o usuário validar visualmente (não verificável remotamente pelo assistente).
+
 ## 2026-07-23 (5) — Identidade visual: cor da logo + tema claro/escuro
 
 Pedido do usuário: as cores do app deveriam seguir a cor da logo/ícone, e deveria existir um botão de claro/escuro no canto direito da barra superior.

@@ -23,6 +23,16 @@ class MyFilesController extends GetxController
   List<PdfDocumentModel> _todos = [];
 
   @override
+  int get totalDocumentos => _todos.length;
+
+  @override
+  int get totalFavoritos => _todos.where((d) => d.isFavorite).length;
+
+  @override
+  int contagemPasta(String folderId) =>
+      _todos.where((d) => d.folderId == folderId).length;
+
+  @override
   void onInit() {
     super.onInit();
     carregar();

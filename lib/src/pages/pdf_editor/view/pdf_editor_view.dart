@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:signature/signature.dart';
 
 import '../../../components/custom_app_bar.dart';
-import '../../../config/custom_colors.dart';
 import '../controller/pdf_editor_controller.dart';
 
 class PdfEditorView extends StatelessWidget {
@@ -17,8 +16,6 @@ class PdfEditorView extends StatelessWidget {
       appBar: const CustomAppBar(tela: 'Editor de PDF', golBack: true),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => controller.salvar(),
-        backgroundColor: CustomColors.primary,
-        foregroundColor: Colors.black87,
         icon: const Icon(Icons.save_outlined),
         label: const Text('Salvar'),
       ),

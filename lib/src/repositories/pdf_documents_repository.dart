@@ -29,6 +29,7 @@ class PdfDocumentsRepository {
     required String fileName,
     required String path,
     required DateTime createdAt,
+    int pageCount = 0,
   }) async {
     final documento = PdfDocumentModel(
       id: fileName,
@@ -36,6 +37,7 @@ class PdfDocumentsRepository {
       displayName: fileName,
       path: path,
       createdAt: createdAt,
+      pageCount: pageCount,
     );
     await _documentsBox.put(documento.id, documento.toMap());
   }

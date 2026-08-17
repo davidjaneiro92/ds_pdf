@@ -7,6 +7,12 @@ class PdfDocumentModel {
   final bool isFavorite;
   final String? folderId;
 
+  /// Número de páginas do PDF no momento em que foi gerado. `0` para
+  /// documentos registrados antes deste campo existir, ou reconciliados a
+  /// partir do disco (ver `PdfDocumentsRepository._reconciliarComDisco`),
+  /// já que nesses casos não temos como saber sem abrir o arquivo.
+  final int pageCount;
+
   const PdfDocumentModel({
     required this.id,
     required this.fileName,
@@ -15,6 +21,7 @@ class PdfDocumentModel {
     required this.createdAt,
     this.isFavorite = false,
     this.folderId,
+    this.pageCount = 0,
   });
 
   PdfDocumentModel copyWith({
@@ -43,6 +50,7 @@ class PdfDocumentModel {
       'createdAt': createdAt.millisecondsSinceEpoch,
       'isFavorite': isFavorite,
       'folderId': folderId,
+      'pageCount': pageCount,
     };
   }
 
@@ -55,6 +63,7 @@ class PdfDocumentModel {
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] as int),
       isFavorite: map['isFavorite'] as bool? ?? false,
       folderId: map['folderId'] as String?,
+      pageCount: map['pageCount'] as int? ?? 0,
     );
   }
 }

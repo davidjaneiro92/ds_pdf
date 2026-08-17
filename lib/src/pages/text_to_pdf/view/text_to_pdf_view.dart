@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '../../../components/custom_app_bar.dart';
 import '../../../components/custom_text_field.dart';
-import '../../../config/custom_colors.dart';
 import '../../../enum/pdf_font_option.dart';
 import '../../../enum/pdf_text_align_option.dart';
 import '../controller/text_to_pdf_controller.dart';
@@ -82,10 +81,6 @@ class TextToPdfView extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: CustomColors.primary,
-                  foregroundColor: Colors.black87,
-                ),
                 onPressed: () => controller.gerarPDF(),
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 label: const Text('Gerar PDF'),

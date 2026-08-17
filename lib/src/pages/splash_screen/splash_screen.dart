@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../config/custom_colors.dart';
 import '../../enum/pages_routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -28,6 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Material(
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Container(
         alignment: Alignment.center,
         child: Column(
@@ -41,7 +41,8 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 10,
             ),
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation(CustomColors.brand),
+              valueColor:
+                  AlwaysStoppedAnimation(Theme.of(context).colorScheme.primary),
             ),
             const Text("PDF Generator",
               style: TextStyle(

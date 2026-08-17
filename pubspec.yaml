@@ -47,6 +47,7 @@ dependencies:
   hive_flutter: ^1.1.0
   syncfusion_flutter_pdf: ^29.1.38
   signature: ^5.5.0
+  google_fonts: ^6.3.0
 
 
 

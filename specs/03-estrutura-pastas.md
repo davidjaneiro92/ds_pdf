@@ -19,8 +19,8 @@ ds_pdf/
 │       │       ├── controller/loading_controller.dart
 │       │       └── view/loading.dart
 │       ├── config/
-│       │   ├── custom_colors.dart  # Paleta de cores do app (ciano da logo — MaterialColor CustomColors.primary)
-│       │   ├── app_theme.dart      # ThemeData claro/escuro (ColorScheme.fromSeed a partir de CustomColors.brand)
+│       │   ├── custom_colors.dart  # Paleta de cores do app (replanejamento visual, 2026-08-16 — ver 08-auditoria.md)
+│       │   ├── app_theme.dart      # ThemeData claro/escuro montado manualmente a partir de CustomColors (tipografia Barlow/Barlow Condensed via google_fonts)
 │       │   └── theme_controller.dart  # GetxController do tema ativo (ThemeMode), persistido em Hive (box "app_settings")
 │       ├── enum/
 │       │   ├── pages_routes.dart          # Enum com os paths de todas as rotas nomeadas
@@ -56,8 +56,10 @@ ds_pdf/
 │       │   └── app_pages.dart      # Lista de GetPage consumida pelo GetMaterialApp
 │       ├── repositories/
 │       │   └── pdf_documents_repository.dart  # Único repositório do projeto; encapsula as boxes Hive
-│       └── services/               # Integrações com APIs nativas via platform channel (sem estado, sem GetX)
-│           └── content_uri_reader.dart  # Lê bytes de URIs "content://" (Android) via ContentResolver nativo
+│       ├── services/                # Integrações com APIs nativas via platform channel (sem estado, sem GetX)
+│       │   └── content_uri_reader.dart  # Lê bytes de URIs "content://"/"file://" (Android) via ContentResolver nativo ou File
+│       └── utils/                   # Funções puras de formatação/apoio, sem estado e sem GetX
+│           └── formatters.dart      # Formata tamanho de arquivo, data relativa e metadados de documento (Início/Meus Arquivos)
 ├── test/
 │   └── widget_test.dart            # Smoke test: app inicializa e mostra a splash screen
 ├── android/, ios/, linux/, macos/, web/, windows/   # Boilerplate de plataforma do `flutter create`
@@ -74,5 +76,6 @@ ds_pdf/
 - **`pages/<feature>/`** — cada funcionalidade do app (Scanner, Seleção de tipo, Splash, Texto→PDF, Meus Arquivos, Editor de PDF) é uma pasta isolada com seu próprio controller/view/abstract. Isso facilita adicionar ou remover uma feature inteira sem tocar em outras.
 - **`pages_routes/`** — ponto único onde as rotas de todas as features são registradas no `GetMaterialApp`.
 - **`repositories/`** — acesso a dados persistidos (Hive). Isola qualquer controller de saber como/onde os dados são guardados.
-- **`services/`** — integrações com código nativo (platform channels), sem estado de UI/GetX. Hoje só `ContentUriReader`, que substitui o pacote `uri_to_file` (removido — travava indefinidamente em URIs `content://` em aparelhos reais) por uma chamada direta ao `ContentResolver` do Android via `MainActivity.kt`.
+- **`services/`** — integrações com código nativo (platform channels), sem estado de UI/GetX. Hoje só `ContentUriReader`, que substitui o pacote `uri_to_file` (removido — travava indefinidamente em URIs `content://` em aparelhos reais) por uma chamada direta ao `ContentResolver` do Android via `MainActivity.kt` — também trata URIs `file://` (formato que o scanner devolve nativamente em alguns aparelhos; ver CHANGELOG 2026-08-16).
+- **`utils/`** — funções puras (sem widget, sem GetX, sem I/O além de leitura de metadado de arquivo) reaproveitadas por mais de uma tela. Hoje só `Formatters`.
 - **`assets/img/`** — todos os assets de imagem do app (minúsculo, conforme declarado em `pubspec.yaml`; corrigido nesta sessão — ver [08-auditoria.md](08-auditoria.md)).
