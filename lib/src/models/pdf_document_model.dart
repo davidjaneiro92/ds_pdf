@@ -38,6 +38,7 @@ class PdfDocumentModel {
       createdAt: createdAt,
       isFavorite: isFavorite ?? this.isFavorite,
       folderId: clearFolderId ? null : (folderId ?? this.folderId),
+      pageCount: pageCount,
     );
   }
 

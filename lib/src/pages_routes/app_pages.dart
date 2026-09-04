@@ -5,7 +5,9 @@ import 'package:ds_pdf/src/pages/pdf_editor/controller/pdf_editor_controller.dar
 import 'package:ds_pdf/src/pages/pdf_editor/view/pdf_editor_view.dart';
 import 'package:ds_pdf/src/pages/scanner/view/scanner_view.dart';
 import 'package:ds_pdf/src/pages/select_PDF_type/view/select_PDF_type_view.dart';
+import 'package:ds_pdf/src/pages/text_to_pdf/view/text_to_pdf_paginas_view.dart';
 import 'package:ds_pdf/src/pages/text_to_pdf/view/text_to_pdf_view.dart';
+import 'package:ds_pdf/src/pages/welcome/view/welcome_view.dart';
 import 'package:get/get.dart';
 import '../pages/splash_screen/splash_screen.dart';
 
@@ -14,6 +16,10 @@ abstract class AppPages {
     GetPage(
       page: () => SplashScreen(),
       name: PagesRoutes.splashScreen.path,
+    ),
+    GetPage(
+      page: () => const WelcomeView(),
+      name: PagesRoutes.welcomeView.path,
     ),
     GetPage(
       page: () => SelectPdfTypeView(),
@@ -26,6 +32,10 @@ abstract class AppPages {
     GetPage(
       page: () => TextToPdfView(),
       name: PagesRoutes.textToPdfView.path,
+    ),
+    GetPage(
+      page: () => TextToPdfPaginasView(),
+      name: PagesRoutes.textToPdfPaginasView.path,
     ),
     GetPage(
       page: () => MyFilesView(),

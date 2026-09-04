@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 
 import '../../../components/custom_toast.dart';
 import '../../../components/loading/controller/loading_controller.dart';
+import '../../../enum/pages_routes.dart';
 import '../../../repositories/pdf_documents_repository.dart';
 import '../../../services/content_uri_reader.dart';
 import '../abstract/scanner_controller_abstract.dart';
@@ -91,22 +92,26 @@ class ScannerController extends GetxController
         pageCount: paginas.length,
       );
 
-      await Printing.sharePdf(bytes: bytes, filename: filename);
-
       limparPaginas();
+
+      loadingController.mostrarSucesso(
+        nomeArquivo: filename,
+        aoCompartilhar: () => Printing.sharePdf(bytes: bytes, filename: filename),
+        aoVerEmMeusArquivos: () => Get.toNamed(PagesRoutes.myFilesView.path),
+      );
     } on GeracaoCanceladaException {
+      loadingController.hideLoading();
       CustomToast().showToasts(
         messagem: 'Geração de PDF cancelada.',
         status: status.warner,
       );
     } catch (e) {
       debugPrint('ScannerController.gerarPDF falhou: $e');
-      CustomToast().showToasts(
-        messagem: 'Não foi possível gerar o PDF.',
-        status: status.error,
+      loadingController.mostrarErro(
+        causa: 'Verifique se há espaço de armazenamento disponível no '
+            'aparelho e tente novamente.',
+        aoTentarNovamente: gerarPDF,
       );
-    } finally {
-      loadingController.hideLoading();
     }
   }
 

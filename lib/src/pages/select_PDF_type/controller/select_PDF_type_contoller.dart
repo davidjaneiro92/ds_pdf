@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 
 import '../../../components/custom_toast.dart';
 import '../../../components/loading/controller/loading_controller.dart';
+import '../../../enum/pages_routes.dart';
 import '../../../models/pdf_document_model.dart';
 import '../../../repositories/pdf_documents_repository.dart';
 
@@ -91,23 +92,26 @@ class SelectPdfTypeContoller extends GetxController
         pageCount: imagens.length,
       );
 
-      // Compartilhar
-      await Printing.sharePdf(bytes: bytes, filename: filename);
-
       imagens = [];
       await carregarRecentes();
+
+      loadingController.mostrarSucesso(
+        nomeArquivo: filename,
+        aoCompartilhar: () => Printing.sharePdf(bytes: bytes, filename: filename),
+        aoVerEmMeusArquivos: () => Get.toNamed(PagesRoutes.myFilesView.path),
+      );
     } on GeracaoCanceladaException {
+      loadingController.hideLoading();
       CustomToast().showToasts(
         messagem: 'Geração de PDF cancelada.',
         status: status.warner,
       );
     } catch (e) {
-      CustomToast().showToasts(
-        messagem: 'Não foi possível gerar o PDF.',
-        status: status.error,
+      loadingController.mostrarErro(
+        causa: 'Verifique se há espaço de armazenamento disponível no '
+            'aparelho e tente novamente.',
+        aoTentarNovamente: gerarPDF,
       );
-    } finally {
-      loadingController.hideLoading();
     }
   }
 }

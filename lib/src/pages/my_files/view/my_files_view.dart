@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../components/blueprint_frame.dart';
 import '../../../components/custom_alert.dart';
 import '../../../components/custom_app_bar.dart';
 import '../../../components/custom_list_tile.dart';
@@ -25,12 +27,12 @@ class MyFilesView extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               onChanged: controller.pesquisar,
-              decoration: InputDecoration(
-                hintText: 'Pesquisar por nome...',
-                prefixIcon: const Icon(Icons.search),
+              decoration: const InputDecoration(
+                hintText: 'Pesquisar por nome',
+                prefixIcon: Icon(LucideIcons.search),
                 isDense: true,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                 ),
               ),
             ),
@@ -51,7 +53,7 @@ class MyFilesView extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final documento = controller.documentos[index];
                   return CustomListTile(
-                    icon: Icons.picture_as_pdf_outlined,
+                    icon: LucideIcons.fileText,
                     title: documento.displayName,
                     subtitle: Formatters.metadadosDocumento(
                       pageCount: documento.pageCount,
@@ -64,9 +66,7 @@ class MyFilesView extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: Icon(
-                            documento.isFavorite
-                                ? Icons.star
-                                : Icons.star_border,
+                            LucideIcons.star,
                             color: documento.isFavorite
                                 ? Colors.amber
                                 : Colors.grey,
@@ -114,16 +114,14 @@ class MyFilesView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 132,
-            height: 168,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(8),
+          BlueprintFrame(
+            child: SizedBox(
+              width: 132,
+              height: 168,
+              child: Icon(LucideIcons.fileText,
+                  size: 40,
+                  color: theme.colorScheme.onSurface.withOpacity(0.3)),
             ),
-            alignment: Alignment.center,
-            child: Icon(Icons.picture_as_pdf_outlined,
-                size: 40, color: theme.colorScheme.onSurface.withOpacity(0.3)),
           ),
           const SizedBox(height: 22),
           Text(
@@ -145,7 +143,7 @@ class MyFilesView extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () => Get.toNamed(PagesRoutes.scannerView.path),
-              icon: const Icon(Icons.document_scanner_outlined),
+              icon: const Icon(LucideIcons.scanText),
               label: const Text('Escanear documento'),
             ),
           ),
@@ -198,7 +196,7 @@ class MyFilesView extends StatelessWidget {
                 onLongPress: () => _confirmarExcluirPasta(context, pasta.id),
               ),
             ActionChip(
-              avatar: const Icon(Icons.add, size: 18),
+              avatar: const Icon(LucideIcons.plus, size: 18),
               label: const Text('Nova pasta'),
               onPressed: () => _abrirDialogoNovaPasta(context),
             ),

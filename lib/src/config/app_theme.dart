@@ -6,9 +6,9 @@ import 'custom_colors.dart';
 /// `ThemeData` claro/escuro do replanejamento visual (ver
 /// [custom_colors.dart]). Tipografia: títulos em Barlow Condensed (peso
 /// 600, condensada — dá o caráter "blueprint" do documento), corpo em
-/// Barlow. Cantos com raio pequeno (`CustomColors.radiusMd/Lg`), sem
-/// elevação alta — o documento pede hierarquia por espaço/tipografia, não
-/// por sombra.
+/// Barlow. Cantos retos (`BorderRadius.zero`) em tudo, sem elevação alta —
+/// o documento pede hierarquia por espaço/tipografia e borda de 1px, não
+/// por raio ou sombra.
 abstract class AppTheme {
   static ThemeData get light => _build(
         brightness: Brightness.light,
@@ -97,7 +97,7 @@ abstract class AppTheme {
         color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(CustomColors.radiusLg),
+          borderRadius: CustomColors.radiusZero,
           side: BorderSide(color: divider),
         ),
       ),
@@ -105,11 +105,19 @@ abstract class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: accent,
           foregroundColor: onAccent,
-          minimumSize: const Size.fromHeight(52),
+          // `Size.fromHeight(52)` equivale a `Size(double.infinity, 52)` —
+          // força largura mínima infinita, o que quebra (BoxConstraints
+          // forces an infinite width) qualquer botão colocado direto numa
+          // Row sem Expanded/SizedBox de largura fixa (ex.: o rodapé de
+          // Texto→PDF). Botões que devem ocupar a largura toda continuam
+          // fazendo isso normalmente quando envolvidos em
+          // `SizedBox(width: double.infinity, child: ...)`, já que aí quem
+          // manda na largura é o SizedBox, não este mínimo.
+          minimumSize: const Size(88, 52),
           textStyle:
               headingFamily.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(CustomColors.radiusMd),
+            borderRadius: CustomColors.radiusZero,
           ),
         ),
       ),
@@ -117,18 +125,26 @@ abstract class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: text,
           side: BorderSide(color: divider),
-          minimumSize: const Size.fromHeight(52),
+          // `Size.fromHeight(52)` equivale a `Size(double.infinity, 52)` —
+          // força largura mínima infinita, o que quebra (BoxConstraints
+          // forces an infinite width) qualquer botão colocado direto numa
+          // Row sem Expanded/SizedBox de largura fixa (ex.: o rodapé de
+          // Texto→PDF). Botões que devem ocupar a largura toda continuam
+          // fazendo isso normalmente quando envolvidos em
+          // `SizedBox(width: double.infinity, child: ...)`, já que aí quem
+          // manda na largura é o SizedBox, não este mínimo.
+          minimumSize: const Size(88, 52),
           textStyle:
               headingFamily.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(CustomColors.radiusMd),
+            borderRadius: CustomColors.radiusZero,
           ),
         ),
       ),
       dialogTheme: DialogTheme(
         backgroundColor: surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(CustomColors.radiusLg),
+          borderRadius: CustomColors.radiusZero,
         ),
         titleTextStyle: headingFamily.titleLarge
             ?.copyWith(color: text, fontWeight: FontWeight.w600),
@@ -138,7 +154,7 @@ abstract class AppTheme {
         filled: true,
         fillColor: bg,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(CustomColors.radiusMd),
+          borderRadius: CustomColors.radiusZero,
           borderSide: BorderSide(color: divider),
         ),
       ),

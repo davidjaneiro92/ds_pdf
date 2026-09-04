@@ -56,10 +56,10 @@ void main() {
 
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('PDF Generator'), findsOneWidget);
+    expect(find.text('DS PDF'), findsOneWidget);
 
-    // Avança o relógio do teste para além do delay de 2s da splash screen,
-    // evitando que o Timer fique pendente ao final do teste.
-    await tester.pump(const Duration(seconds: 3));
+    // Avança o relógio do teste para além do piso de 600ms da splash
+    // screen, evitando que o Timer fique pendente ao final do teste.
+    await tester.pump(const Duration(seconds: 1));
   });
 }

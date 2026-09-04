@@ -2,6 +2,98 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-08-18 — Texto→PDF: fidelidade ao mockup + robustez de layout
+
+O usuário comparou a tela com o mockup do documento de referência e apontou que não estava igual. Diferenças corrigidas em [text_to_pdf_view.dart](../lib/src/pages/text_to_pdf/view/text_to_pdf_view.dart) e [text_to_pdf_paginas_view.dart](../lib/src/pages/text_to_pdf/view/text_to_pdf_paginas_view.dart):
+
+- **Seletor de fonte emoldurado** com borda e chevron (era um dropdown solto).
+- **Stepper de tamanho emoldurado**: caixa de 112px com `−` | valor mono | `+` separados por divisórias de 1px.
+- **Botão de cor "A"** com barra de 3px embaixo na cor ativa (era um ícone de paleta), abrindo o conjunto curado (Texto/Cinza/Acento) com amostra de cor em cada item.
+- **Ícone de olho** na barra superior, levando à tela Páginas.
+- **Marcadores de página ao vivo**: rótulo "PÁGINA 1 · A4" no topo da área de digitação e régua "FIM DA PÁGINA N" + "PÁGINA N+1 · A4" na altura em que o conteúdo transborda de uma página A4.
+- **Máscara de gradiente de 34px** na base do card de digitação.
+- **Ordem corrigida**: "Cabeçalho e rodapé" passou para **abaixo** da área de digitação (estava acima), com chevron para a direita.
+- **Botão primário "Gerar PDF"** com as marcas de registro (`BlueprintFrame`).
+- **Tela Páginas**: número da página **centrado embaixo** da miniatura (era um quadrado de acento dentro dela), miniatura renderizando o texto real em escala reduzida, célula "Nova página" agora **tracejada** e alinhada com as miniaturas, botões do rodapé com a mesma largura.
+- `DottedBorderBox` movido de `scanner_view.dart` para [components/dotted_border_box.dart](../lib/src/components/dotted_border_box.dart), já que agora duas telas o usam.
+
+### Como as diferenças foram encontradas (sem aparelho conectado)
+Um teste de widget temporário renderizou a tela em 390×844 e salvou PNG via `RepaintBoundary.toImage`, permitindo comparar lado a lado com o mockup. Detalhe importante: em `flutter test` não há rede, então o `google_fonts` falha e o texto renderiza com uma fonte de fallback **bem mais larga** que a real — larguras no screenshot ficam irreais. Registrando fontes do Windows com os nomes exatos que o `google_fonts` injeta (`BarlowCondensed_regular`, `Barlow_regular`, `RobotoMono_regular`) o screenshot passou a representar o aparelho.
+
+### Corrigido no caminho
+- **`Spacer` na faixa 3 da barra de formatação**: a faixa rola horizontalmente (largura não-limitada), onde `Spacer` quebra o layout. Resolvido com `ConstrainedBox(minWidth) > IntrinsicWidth > Row` — **a ordem importa**: com o `ConstrainedBox` por dentro, o `minWidth` é engolido pela largura apertada que o `IntrinsicWidth` impõe.
+- **Crash no primeiro frame dos marcadores**: `_scrollController.hasClients` não garante que a posição foi medida; ler `offset`/`maxScrollExtent` nesse estado lança `Null check operator used on a null value`. Guardado também com `hasPixels`/`hasContentDimensions`.
+- **Rodapé estourando em tela estreita**: os dois botões viraram `Flexible` com rótulo em uma linha e reticências — ficam na largura natural quando cabe e encolhem quando não. Protege também o caso real de usuário com fonte grande do sistema.
+- **`test/text_to_pdf_view_test.dart` agora roda em 390×844** em vez dos 800×600 padrão do `flutter_test` — foi essa mudança que expôs o estouro do rodapé, invisível na largura padrão.
+
+### Limitação assumida (documentada no código)
+Os marcadores automáticos de página são desenhados **por cima** do editor (overlay posicionado por altura de conteúdo), não inseridos no documento. Isso evita qualquer risco de mexer no cursor/seleção a cada tecla, mas significa que (a) o marcador **tapa um pedaço da linha** onde cai — por isso a régua é fina e as etiquetas são pequenas e opacas — e (b) a posição é uma **estimativa por altura**, não a paginação exata do `flutter_quill_to_pdf`. Quebras de página **manuais** (botão "Nova página") continuam exatas e 1:1 com o PDF.
+
+### Validado
+- `flutter analyze`: 0 erros, baseline de 19 avisos mantido.
+- `flutter test`: todos passando, com o teste de Texto→PDF agora em largura de celular.
+- `flutter build apk --debug`: build completo com sucesso.
+- Conferido visualmente por screenshot renderizado com fontes reais: sem nenhum overflow, layout batendo com o mockup. **Não testado em aparelho físico** (segue sem dispositivo conectado).
+
+## 2026-08-17 (2) — 3 bugs reais de layout na tela Texto→PDF, achados sem o aparelho conectado
+
+Usuário reportou a tela de fallback (`CustomErrorWidget`) ao abrir Texto→PDF, mas sem o celular conectado para puxar `adb logcat`. Como `flutter analyze`/`flutter test` já estavam limpos (esses bugs são de **runtime**, não de compilação), reproduzi headless com um teste de widget (`test/text_to_pdf_view_test.dart`, novo — mantido como regressão) que monta `TextToPdfView` sozinha e captura qualquer exceção via `tester.takeException()`. Achou 3 bugs reais, um atrás do outro (corrigir um revelava o próximo):
+
+1. **`Container` com `color:` e `decoration:` ao mesmo tempo** em `_buildBarraFormatacao` ([text_to_pdf_view.dart](../lib/src/pages/text_to_pdf/view/text_to_pdf_view.dart)) — o Flutter proíbe isso (`Failed assertion: 'color == null || decoration == null'`), e quebrava assim que a tela abria. Corrigido movendo a cor para dentro do `BoxDecoration`.
+2. **`Spacer()` dentro de uma `Row` sem largura limitada** em `_faixaListaPaginaHistorico` — essa `Row` fica dentro de um `SingleChildScrollView` horizontal (rolagem lateral da barra de formatação), que dá largura *não-limitada* ao filho; um `Spacer`/`Expanded` nesse contexto lança `RenderFlex children have non-zero flex but incoming width constraints are unbounded`. Trocado por um `SizedBox` de largura fixa.
+3. **Bug sistêmico no tema global** ([app_theme.dart](../lib/src/config/app_theme.dart)): `elevatedButtonTheme`/`outlinedButtonTheme` usavam `minimumSize: Size.fromHeight(52)` — que na verdade é `Size(double.infinity, 52)` (`Size.fromHeight` sempre deixa a largura infinita). Qualquer `ElevatedButton`/`OutlinedButton` colocado direto numa `Row` sem `Expanded`/`SizedBox` de largura fixa (o rodapé de Texto→PDF: "Ver páginas"/"Gerar PDF") lançava `BoxConstraints forces an infinite width`. Trocado para `Size(88, 52)` — mantém a altura mínima de 52px pedida pelo documento de replanejamento sem forçar largura infinita; botões que devem ocupar a tela toda continuam funcionando normalmente quando envolvidos em `SizedBox(width: double.infinity, child: ...)`, como já é o padrão em várias telas.
+
+Nenhum desses 3 aparecia no `flutter analyze` porque são todos assertions de **layout em runtime** (`RenderFlex`/`BoxConstraints`), não erros de tipo — só estouram quando o widget é efetivamente montado e medido. O mesmo padrão (botão solto numa `Row`) pode existir em outras telas; não foi auditado exaustivamente fora de Texto→PDF, mas o risco caiu bastante com o fix no tema global (item 3), já que a causa raiz mais perigosa (largura mínima infinita) foi removida de uma vez para todo o app.
+
+### Validado
+- `flutter analyze`: 0 erros, baseline de 19 avisos mantido.
+- `flutter test`: todos os testes passando, incluindo o novo `text_to_pdf_view_test.dart` (abre a tela, digita, aplica negrito — sem exceção em nenhum passo).
+- `flutter build apk --debug`: build completo com sucesso.
+- Não testado ao vivo no aparelho do usuário (segue sem estar conectado nesta sessão) — recomendado confirmar visualmente que a tela abre e a barra de formatação funciona antes de considerar fechado.
+
+## 2026-08-17 — Segunda metade do replanejamento visual (fundação, Editor de PDF, Texto→PDF rico, Splash/boas-vindas)
+
+Continuação do replanejamento de 2026-08-16 (que cobriu só as "telas simples"). Ao reler o documento de referência completo contra o código, uma auditoria (3 agentes de exploração em paralelo) achou duas coisas: divergências na parte que já devia estar pronta (raio de canto não estava zerado, sem `BlueprintFrame`, sem ícones Lucide, sem fonte mono, `CustomAppBar` sem `subtitle`, `LoadingController` sem estados de sucesso/erro, e um bug real — `PdfDocumentModel.copyWith()` não repassava `pageCount`, zerando o contador em toda renomeação/favorito/mover de pasta) e as seções nunca implementadas (Editor de PDF, Texto→PDF, Splash/boas-vindas). O usuário escolheu fazer tudo nesta leva, incluindo o editor de texto rico — a peça mais incerta do documento.
+
+### Adicionado/Corrigido — fundação visual
+- **Cantos retos em tudo**: `CustomColors.radiusSm/Md/Lg` (2/4/7px, erro da leva anterior) trocados por `CustomColors.radiusZero`; todo `BorderRadius.circular` hardcoded restante (`my_files_view.dart`, `loading.dart`, `custom_text_field.dart`) também zerado.
+- **`BlueprintFrame`** (novo, [blueprint_frame.dart](../lib/src/components/blueprint_frame.dart)): moldura de linha com 4 marcas de registro `+` nos cantos via `CustomPaint`; aplicada em cards da Início, thumbnails do Scanner/Editor de PDF/Meus Arquivos/"Páginas", figuras de estado vazio e blocos de boas-vindas.
+- **Ícones Lucide** (`lucide_icons_flutter`) no lugar do Material `_outlined`, em todas as telas tocadas.
+- **Fonte monoespaçada** (`CustomColors.monoTextStyle()`, Roboto Mono via `google_fonts`) em metadados de documento, "Página N de M · X%" do progresso, destino do Scanner, contagem de páginas/palavras de Texto→PDF.
+- **`CustomAppBar`**: novo `subtitle` opcional; `leading` agora também aparece quando `Navigator.canPop(context)`, não só quando `golBack: true` é passado explicitamente.
+- **Bug real corrigido**: `PdfDocumentModel.copyWith()` não incluía `pageCount` no objeto retornado — renomear, favoritar ou mover de pasta um documento zerava sua contagem de páginas guardada. Corrigido passando `pageCount` explicitamente.
+
+### Adicionado — feedback de sistema
+- **`LoadingController`/`LoadingWidget`** ganharam estados de **sucesso** (`mostrarSucesso`: nome do arquivo + Compartilhar/Ver em Meus Arquivos) e **erro** (`mostrarErro`: causa em linguagem simples + tentar de novo), num único diálogo com 3 estados (`LoadingEstado`) em vez de diálogos separados. `SelectPdfTypeContoller`, `ScannerController` e `TextToPdfController` passaram a usar esses estados em vez dos toasts genéricos de sucesso/erro ao final de `gerarPDF()`.
+
+### Adicionado — Editor de PDF redesenhado
+- [pdf_editor_view.dart](../lib/src/pages/pdf_editor/view/pdf_editor_view.dart) reescrito: `CustomAppBar` com `subtitle` ("arquivo.pdf · salva como cópia") e `trailing` "Salvar" (removeu o `FloatingActionButton`); grade de 2 colunas de miniaturas emolduradas em vez de lista; barra de ferramentas fixa embaixo (Assinar/Reordenar/Adicionar/Excluir) — "Reordenar" e "Excluir" viram **modos** (tocar numa página arrasta ou exclui com confirmação) em vez de affordance por linha; "Adicionar" fica desabilitada (controller não suporta inserir página em branco). Controller (`PdfEditorController`) não mudou — só a view.
+
+### Adicionado — Texto→PDF reescrito como editor de texto rico
+- **Decisão de arquitetura**: `flutter_quill` (editor maduro — seleção, cursor, desfazer/refazer, IME — evita reimplementar isso do zero) + `flutter_quill_to_pdf` (converte o Delta para PDF), com barra de formatação **própria** (não a padrão do pacote), em vez de um modelo de blocos com atributos escrito à mão (a opção mais arriscada, descartada pelo risco de bugs de edição).
+- [text_to_pdf_controller.dart](../lib/src/pages/text_to_pdf/controller/text_to_pdf_controller.dart) reescrito: `QuillController` no lugar de `TextEditingController`; quebra de página **manual** via um embed customizado (`page_break`) inserido pelo botão "Nova página" — cada embed divide o documento num segmento próprio (`dividirEmSegmentos()`), e cada segmento vira seu próprio `pw.Document` na geração, depois copiado (via Syncfusion, mesma técnica do Editor de PDF) para um documento final — garante que toda quebra manual é 1:1 com o PDF gerado.
+- [text_to_pdf_view.dart](../lib/src/pages/text_to_pdf/view/text_to_pdf_view.dart) reescrito: barra de formatação fixa em 3 faixas (fonte+tamanho / negrito-itálico-sublinhado+alinhamento+cor / lista+"Nova página"+desfazer-refazer), `QuillEditor` numa `BlueprintFrame`, cabeçalho/rodapé numa folha inferior recolhível, rodapé fixo com contagem + "Ver páginas"/"Gerar PDF".
+- **Nova tela "Páginas"** ([text_to_pdf_paginas_view.dart](../lib/src/pages/text_to_pdf/view/text_to_pdf_paginas_view.dart) + rota `textToPdfPaginasView`): grade de miniaturas por segmento (prévia em texto, não renderização pixel-a-pixel), célula tracejada "Nova página".
+- **Simplificação consciente e documentada no código**: os marcadores de página **automáticos** do documento de referência (rótulos "PÁGINA N · A4" dentro do fluxo do texto, atualizados a cada tecla) não foram implementados como embeds reais — só a contagem estimada por caracteres no rodapé (`≈N páginas`). Inserir/remover embeds automaticamente a cada mudança de texto arriscava bugs de cursor/seleção; as quebras manuais continuam exatas.
+
+### Adicionado — Splash e boas-vindas
+- [splash_screen.dart](../lib/src/pages/splash_screen/splash_screen.dart): textos traduzidos para PT-BR ("DS PDF" / "Digitalize e gere PDFs" — antes em inglês); atraso fixo de 2s trocado por um piso de 600ms (a inicialização real de Hive/DI já termina em `main.dart` antes de `runApp`, então não havia uma segunda etapa de carregamento acontecendo dentro da própria tela).
+- **Nova tela de boas-vindas** ([welcome_view.dart](../lib/src/pages/welcome/view/welcome_view.dart), rota `welcomeView`): tela única (sem carrossel) explicando as 3 formas de criar PDF, mostrada só na primeira execução — controlada por uma flag em Hive (`OnboardingPrefs`, novo, mesma box `app_settings` do `ThemeController`).
+
+### Dependências — história de compatibilidade de versões (leia antes de subir a versão do Flutter)
+Este projeto está preso ao Flutter 3.24.5 (Dart 3.5.4). As versões mais recentes do ecossistema `flutter_quill` pressupõem um Flutter bem mais novo:
+- `flutter_quill` **11.5.0** (última) usa `Color.withValues`/`.r`/`.g`/`.b`/`.a`, API que só existe a partir do Flutter ~3.27 — quebra a compilação neste SDK.
+- Rebaixando para **10.8.5**: compila, mas `flutter_quill_to_pdf` **2.2.8** (compatível com essa versão) resolve `dart_quill_delta`/`flutter_quill_delta_easy_parser` em versões que removeram APIs que o próprio `flutter_quill_to_pdf` usa internamente (`Line.data`, `Line.attributes`, `Delta.fullDenormalizer()`) — bug real de constraint solta do pacote, não algo corrigível só pinando versões dessas duas libs (tentado, gerou uma cadeia de erros diferente a cada tentativa).
+- A partir da **10.8.4**, `flutter_quill` também troca seu plugin de clipboard para `quill_native_bridge`, cuja implementação Windows (`quill_native_bridge_windows` 0.0.2) referencia uma constante do `win32` (`GMEM_MOVEABLE`) que nunca existiu com esse nome em nenhuma versão do pacote — quebra a *compilação* do app inteiro (não só em Windows: o registrant Dart que o Flutter gera importa incondicionalmente as 6 implementações de plataforma de qualquer plugin Dart-only). A versão corrigida (`quill_native_bridge_windows` ≥0.1.0) exige `win32` ≥5.11.0, que exige Dart SDK ≥3.7.0 — mais novo que o deste projeto.
+- **Solução adotada**: `flutter_quill: ^9.6.0` + `flutter_quill_to_pdf: ^1.2.2` — a faixa 9.x usa `super_clipboard` em vez de `quill_native_bridge` e evita esse pacote inteiro. A API do `PDFConverter`/`QuillEditor`/`EmbedBuilder` nessa faixa é mais antiga (callbacks `onRequestFont`/`onRequestBoldFont`/etc. em vez de um único `onRequestFontFamily`; `QuillEditor(configurations: QuillEditorConfigurations(controller: ...))` em vez de `controller:` direto) — refletida no código atual.
+- Ver [07-engenharia.md](07-engenharia.md) para a tabela de dependências com a versão exata fixada de cada pacote.
+
+### Validado
+- `flutter analyze`: 0 erros, baseline de 19 avisos pré-existentes mantido.
+- `flutter test`: smoke test + 4 testes de `ContentUriReader` — todos passando (o smoke test foi atualizado para o novo texto "DS PDF" da splash e o novo piso de 600ms).
+- `flutter build apk --debug --target-platform android-arm64`: build completo com sucesso (após limpar/recriar as junctions NTFS de `.dart_tool`/`build` para E:, que `flutter clean` havia removido no meio da depuração de versões).
+- **Não testado ao vivo no aparelho físico do usuário nesta sessão** — nenhum dispositivo Android estava conectado no momento da validação (diferente das sessões anteriores, que usaram `adb logcat` para depuração ao vivo). Recomendado ao usuário instalar o APK gerado e testar o editor de texto rico (quebra de página manual e automática), o Editor de PDF redesenhado e a tela de boas-vindas (exige limpar dados do app ou reinstalar para ver o estado de "primeira execução") antes de considerar esta leva finalizada.
+
 ## 2026-08-16 — Correção real do bug do Scanner (`file://`) + replanejamento visual (telas simples)
 
 Sessão retomada depois de um hiato: o usuário reportou de novo erro ao escanear/gerar PDF (miniatura quebrada, "Não foi possível gerar o PDF."). Testado ao vivo no aparelho do usuário via `flutter run` + `adb logcat`, o que permitiu achar a causa raiz real pela primeira vez (sessões anteriores só tinham corrigido a causa de um sintoma parecido, mas diferente — o travamento do `uri_to_file`). Na sequência, o usuário enviou um documento de referência (zip com um mockup HTML/CSS de replanejamento visual completo do app, gerado externamente) e pediu para implementar as telas mais simples primeiro.

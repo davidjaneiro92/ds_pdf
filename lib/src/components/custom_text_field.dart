@@ -107,8 +107,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
               : null,
           labelText: widget.label,
           isDense: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
           ),
         ),
       ),

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ds_pdf-web",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8765", "--web-hostname", "127.0.0.1", "--web-renderer", "html"],
+      "port": 8765
+    }
+  ]
+}

@@ -2,8 +2,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../components/blueprint_frame.dart';
 import '../../../components/custom_app_bar.dart';
+import '../../../components/dotted_border_box.dart';
 import '../../../config/custom_colors.dart';
 import '../../../services/content_uri_reader.dart';
 import '../../../utils/formatters.dart';
@@ -80,7 +83,8 @@ class ScannerView extends StatelessWidget {
           Text(
             'Será salvo em Meus Arquivos como '
             '${Formatters.sugestaoNomeArquivo('scan')}.pdf',
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: CustomColors.monoTextStyle(
+              fontSize: 12,
               color: theme.colorScheme.onSurface.withOpacity(0.58),
             ),
           ),
@@ -90,7 +94,7 @@ class ScannerView extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => controller.escanearDocumento(),
-                  icon: const Icon(Icons.add_a_photo_outlined),
+                  icon: const Icon(LucideIcons.camera),
                   label: const Text('Escanear mais'),
                 ),
               ),
@@ -99,7 +103,7 @@ class ScannerView extends StatelessWidget {
                 flex: 2,
                 child: ElevatedButton.icon(
                   onPressed: () => controller.gerarPDF(),
-                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  icon: const Icon(LucideIcons.fileText),
                   label: const Text('Gerar PDF'),
                 ),
               ),
@@ -118,19 +122,38 @@ class ScannerView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.document_scanner_outlined,
-                size: 96, color: theme.colorScheme.onSurface.withOpacity(0.35)),
-            const SizedBox(height: 16),
+            BlueprintFrame(
+              child: SizedBox(
+                width: 140,
+                height: 140,
+                child: Icon(LucideIcons.scanText,
+                    size: 56,
+                    color: theme.colorScheme.onSurface.withOpacity(0.35)),
+              ),
+            ),
+            const SizedBox(height: 20),
             Text(
-              'Nenhuma página escaneada ainda',
-              style: theme.textTheme.bodyLarge,
+              'Nenhuma página escaneada',
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'O scanner detecta as bordas do documento e corrige a '
+              'perspectiva automaticamente a cada foto.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => controller.escanearDocumento(),
-              icon: const Icon(Icons.camera_alt_outlined),
-              label: const Text('Escanear documento'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => controller.escanearDocumento(),
+                icon: const Icon(LucideIcons.camera),
+                label: const Text('Escanear documento'),
+              ),
             ),
           ],
         ),
@@ -153,7 +176,6 @@ class _Tag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isDark ? CustomColors.tagBgDark : CustomColors.tagBgLight,
-        borderRadius: BorderRadius.circular(CustomColors.radiusSm),
       ),
       child: Text(
         texto,
@@ -176,13 +198,12 @@ class _TileAdicionar extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(CustomColors.radiusLg),
         onTap: onTap,
         child: DottedBorderBox(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add, size: 30, color: theme.colorScheme.primary),
+              Icon(LucideIcons.plus, size: 30, color: theme.colorScheme.primary),
               const SizedBox(height: 8),
               Text(
                 'Adicionar',
@@ -197,58 +218,6 @@ class _TileAdicionar extends StatelessWidget {
   }
 }
 
-/// Moldura tracejada simples (sem depender de pacote externo) para o item
-/// "Adicionar" da grade — desenhada com `CustomPaint`.
-class DottedBorderBox extends StatelessWidget {
-  final Widget child;
-  const DottedBorderBox({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final cor = Theme.of(context).colorScheme.primary.withOpacity(0.5);
-    return CustomPaint(
-      painter: _DashedRectPainter(color: cor, radius: CustomColors.radiusLg),
-      child: child,
-    );
-  }
-}
-
-class _DashedRectPainter extends CustomPainter {
-  final Color color;
-  final double radius;
-  _DashedRectPainter({required this.color, required this.radius});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
-    final path = Path()..addRRect(rrect);
-    final metrics = path.computeMetrics();
-    for (final metric in metrics) {
-      const dashWidth = 5.0;
-      const gapWidth = 4.0;
-      var distance = 0.0;
-      while (distance < metric.length) {
-        canvas.drawPath(
-          metric.extractPath(distance, distance + dashWidth),
-          paint,
-        );
-        distance += dashWidth + gapWidth;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedRectPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
-}
-
 class _PaginaThumbnail extends StatelessWidget {
   final String uri;
   final int numero;
@@ -258,8 +227,7 @@ class _PaginaThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(CustomColors.radiusLg),
+    return BlueprintFrame(
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -269,7 +237,7 @@ class _PaginaThumbnail extends StatelessWidget {
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(
-                  child: Icon(Icons.broken_image_outlined,
+                  child: Icon(LucideIcons.imageOff,
                       color: theme.colorScheme.error),
                 );
               }
@@ -283,9 +251,11 @@ class _PaginaThumbnail extends StatelessWidget {
           Positioned(
             top: 8,
             left: 8,
-            child: CircleAvatar(
-              radius: 13,
-              backgroundColor: theme.colorScheme.primary,
+            child: Container(
+              width: 26,
+              height: 26,
+              alignment: Alignment.center,
+              color: theme.colorScheme.primary,
               child: Text(
                 '$numero',
                 style: TextStyle(

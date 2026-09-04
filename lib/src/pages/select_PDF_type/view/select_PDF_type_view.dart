@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../components/blueprint_frame.dart';
 import '../../../config/custom_colors.dart';
 import '../../../config/theme_controller.dart';
 import '../../../enum/pages_routes.dart';
@@ -44,7 +46,7 @@ class SelectPdfTypeView extends StatelessWidget {
                         Expanded(
                           child: _cardSecundario(
                             context,
-                            icon: Icons.photo_library_outlined,
+                            icon: LucideIcons.images,
                             titulo: 'Galeria',
                             subtitulo: 'Fotos já salvas',
                             onTap: () async {
@@ -56,7 +58,7 @@ class SelectPdfTypeView extends StatelessWidget {
                         Expanded(
                           child: _cardSecundario(
                             context,
-                            icon: Icons.description_outlined,
+                            icon: LucideIcons.fileText,
                             titulo: 'Texto',
                             subtitulo: 'Digitar e paginar',
                             onTap: () async {
@@ -93,15 +95,13 @@ class SelectPdfTypeView extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(LucideIcons.search),
             tooltip: 'Pesquisar',
             onPressed: () => Get.toNamed(PagesRoutes.myFilesView.path),
           ),
           Obx(() => IconButton(
                 icon: Icon(
-                  themeController.isDark
-                      ? Icons.light_mode_outlined
-                      : Icons.dark_mode_outlined,
+                  themeController.isDark ? LucideIcons.sun : LucideIcons.moon,
                 ),
                 tooltip: themeController.isDark ? 'Tema claro' : 'Tema escuro',
                 onPressed: themeController.alternar,
@@ -118,44 +118,46 @@ class SelectPdfTypeView extends StatelessWidget {
     final theme = Theme.of(context);
     return Material(
       color: theme.colorScheme.primary,
-      borderRadius: BorderRadius.circular(CustomColors.radiusLg),
       child: InkWell(
-        borderRadius: BorderRadius.circular(CustomColors.radiusLg),
         onTap: () async {
           await Get.toNamed(PagesRoutes.scannerView.path);
           controller.carregarRecentes();
         },
-        child: Container(
-          height: 128,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              Icon(Icons.document_scanner_outlined,
-                  size: 40, color: theme.colorScheme.onPrimary),
-              const SizedBox(width: 18),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Escanear documento',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.onPrimary,
-                        fontSize: 22,
+        child: BlueprintFrame(
+          borderColor: theme.colorScheme.onPrimary.withOpacity(0.4),
+          child: Container(
+            height: 128,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(LucideIcons.scanText,
+                    size: 40, color: theme.colorScheme.onPrimary),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Escanear documento',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                          fontSize: 22,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Detecta as bordas e corrige a perspectiva',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onPrimary.withOpacity(0.85),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Detecta as bordas e corrige a perspectiva',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color:
+                              theme.colorScheme.onPrimary.withOpacity(0.85),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -171,29 +173,29 @@ class SelectPdfTypeView extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(CustomColors.radiusLg),
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(CustomColors.radiusLg),
         onTap: onTap,
-        child: Container(
-          height: 104,
-          padding: const EdgeInsets.all(14),
-          alignment: Alignment.bottomLeft,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 26, color: theme.colorScheme.primary),
-              const SizedBox(height: 6),
-              Text(titulo, style: theme.textTheme.titleMedium),
-              Text(
-                subtitulo,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+        child: BlueprintFrame(
+          child: Container(
+            height: 104,
+            padding: const EdgeInsets.all(14),
+            alignment: Alignment.bottomLeft,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, size: 26, color: theme.colorScheme.primary),
+                const SizedBox(height: 6),
+                Text(titulo, style: theme.textTheme.titleMedium),
+                Text(
+                  subtitulo,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -240,7 +242,7 @@ class SelectPdfTypeView extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.picture_as_pdf_outlined,
+            Icon(LucideIcons.fileText,
                 size: 22, color: theme.colorScheme.primary),
             const SizedBox(width: 14),
             Expanded(
@@ -261,7 +263,8 @@ class SelectPdfTypeView extends StatelessWidget {
                       path: documento.path,
                       createdAt: documento.createdAt,
                     ),
-                    style: theme.textTheme.bodySmall?.copyWith(
+                    style: CustomColors.monoTextStyle(
+                      fontSize: 12,
                       color: theme.colorScheme.onSurface.withOpacity(0.58),
                     ),
                   ),

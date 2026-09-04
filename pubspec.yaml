@@ -48,8 +48,19 @@ dependencies:
   syncfusion_flutter_pdf: ^29.1.38
   signature: ^5.5.0
   google_fonts: ^6.3.0
-
-
+  lucide_icons_flutter: ^3.1.15
+  # Presos na faixa 9.x de propósito: a partir da 10.8.4 o flutter_quill
+  # troca seu plugin de clipboard para `quill_native_bridge`, cuja
+  # implementação Windows (0.0.2) referencia uma constante do win32 que
+  # nunca existiu com esse nome — quebra a compilação em qualquer
+  # plataforma (o registrant Dart gerado pelo Flutter importa as 6
+  # implementações de plataforma incondicionalmente, mesmo o app sendo só
+  # Android). Versões >=0.1.0 do quill_native_bridge_windows corrigem isso,
+  # mas exigem win32 >=5.11.0, que exige Dart SDK >=3.7.0 — mais novo que o
+  # 3.5.4 deste projeto (Flutter 3.24.5). A faixa 9.x usa `super_clipboard`
+  # em vez de `quill_native_bridge`, evitando esse pacote de vez.
+  flutter_quill: ^9.6.0
+  flutter_quill_to_pdf: ^1.2.2
 
 dev_dependencies:
   flutter_test:

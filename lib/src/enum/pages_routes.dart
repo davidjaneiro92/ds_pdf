@@ -1,11 +1,15 @@
 enum PagesRoutes {
   splashScreen('/splash_screen'),
 
+  welcomeView('/welcome_view'),
+
   SelectPdfTypeView('/select_PDF_type_view'),
 
   scannerView('/scanner_view'),
 
   textToPdfView('/text_to_pdf_view'),
+
+  textToPdfPaginasView('/text_to_pdf_paginas_view'),
 
   myFilesView('/my_files_view'),
 

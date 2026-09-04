@@ -15,13 +15,15 @@ ds_pdf/
 │       │   ├── custom_list_tile.dart      # ListTile genérico
 │       │   ├── custom_text_field.dart     # TextFormField completo (senha, validação, foco)
 │       │   ├── custom_toast.dart          # Toast global (sucesso/aviso/erro) via oktoast
+│       │   ├── blueprint_frame.dart       # Moldura de linha com marcas de registro nos cantos (replanejamento 2026-08-17)
 │       │   └── loading/                   # Overlay de loading global
-│       │       ├── controller/loading_controller.dart
+│       │       ├── controller/loading_controller.dart  # 3 estados: progresso/sucesso/erro
 │       │       └── view/loading.dart
 │       ├── config/
-│       │   ├── custom_colors.dart  # Paleta de cores do app (replanejamento visual, 2026-08-16 — ver 08-auditoria.md)
+│       │   ├── custom_colors.dart  # Paleta de cores do app + cantos retos + fonte mono (replanejamento visual — ver 08-auditoria.md)
 │       │   ├── app_theme.dart      # ThemeData claro/escuro montado manualmente a partir de CustomColors (tipografia Barlow/Barlow Condensed via google_fonts)
-│       │   └── theme_controller.dart  # GetxController do tema ativo (ThemeMode), persistido em Hive (box "app_settings")
+│       │   ├── theme_controller.dart  # GetxController do tema ativo (ThemeMode), persistido em Hive (box "app_settings")
+│       │   └── onboarding_prefs.dart  # Flag "onboardingSeen" (mesma box "app_settings"), lida pela Splash para decidir Boas-vindas vs. Início
 │       ├── enum/
 │       │   ├── pages_routes.dart          # Enum com os paths de todas as rotas nomeadas
 │       │   ├── pdf_font_option.dart       # Fontes disponíveis para Texto→PDF (mapeadas para pw.Font)
@@ -47,11 +49,15 @@ ds_pdf/
 │       │   │   ├── controller/select_PDF_type_contoller.dart
 │       │   │   └── view/select_PDF_type_view.dart
 │       │   ├── splash_screen/
-│       │   │   └── splash_screen.dart      # Tela de abertura (redireciona após 2s)
-│       │   └── text_to_pdf/                # Editor de texto → PDF
+│       │   │   └── splash_screen.dart      # Tela de abertura (piso de 600ms, decide Boas-vindas/Início)
+│       │   ├── welcome/                    # Boas-vindas do primeiro uso (tela única, 3 blocos)
+│       │   │   └── view/welcome_view.dart
+│       │   └── text_to_pdf/                # Editor de texto rico → PDF (flutter_quill)
 │       │       ├── abstract/text_to_pdf_controller_abstract.dart
 │       │       ├── controller/text_to_pdf_controller.dart
-│       │       └── view/text_to_pdf_view.dart
+│       │       └── view/
+│       │           ├── text_to_pdf_view.dart          # Editor + barra de formatação
+│       │           └── text_to_pdf_paginas_view.dart  # Pré-visualização por segmento (quebras manuais)
 │       ├── pages_routes/
 │       │   └── app_pages.dart      # Lista de GetPage consumida pelo GetMaterialApp
 │       ├── repositories/

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Paleta do replanejamento visual do app (ver
 /// `especificacao/replanejamento/` — documento de referência convertido a
@@ -36,8 +37,23 @@ abstract class CustomColors {
   static const Color neutral800 = Color(0xFF424244);
   static const Color neutral900 = Color(0xFF2B2B2D);
 
-  /// Raio de borda do sistema de design (`--radius-sm/md/lg` do documento).
-  static const double radiusSm = 2;
-  static const double radiusMd = 4;
-  static const double radiusLg = 7;
+  /// Cantos retos em todo o app — o documento de referência pede
+  /// `BorderRadius.zero` em cards, botões, campos e diálogos (revisado em
+  /// 2026-08-17; a primeira leva do replanejamento havia deixado raios de
+  /// 2/4/7px por engano).
+  static const BorderRadius radiusZero = BorderRadius.zero;
+
+  /// Fonte monoespaçada para metadados técnicos (contagens, datas, tamanhos
+  /// de arquivo) — o documento pede uma família distinta da tipografia de
+  /// corpo/título para esses valores.
+  static TextStyle monoTextStyle({
+    double fontSize = 12,
+    Color? color,
+    FontWeight? fontWeight,
+  }) =>
+      GoogleFonts.robotoMono(
+        fontSize: fontSize,
+        color: color,
+        fontWeight: fontWeight,
+      );
 }

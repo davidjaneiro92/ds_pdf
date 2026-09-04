@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../config/custom_colors.dart';
+
 class CustomListTile extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -19,9 +21,18 @@ class CustomListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ListTile(
       title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle!) : null,
+      subtitle: subtitle != null
+          ? Text(
+              subtitle!,
+              style: CustomColors.monoTextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            )
+          : null,
       leading: Icon(icon),
       trailing: trailing ?? const Icon(CupertinoIcons.forward, size: 18),
       onTap: onTap ?? () {},
