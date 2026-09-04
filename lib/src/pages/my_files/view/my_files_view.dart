@@ -9,6 +9,7 @@ import '../../../components/custom_list_tile.dart';
 import '../../../enum/pages_routes.dart';
 import '../../../models/pdf_document_model.dart';
 import '../../../utils/formatters.dart';
+import '../../pdf_reader/pdf_reader_launcher.dart';
 import '../../select_PDF_type/abstract/select_PDF_type_contoller_abstract.dart';
 import '../controller/my_files_controller.dart';
 
@@ -60,7 +61,7 @@ class MyFilesView extends StatelessWidget {
                       path: documento.path,
                       createdAt: documento.createdAt,
                     ),
-                    onTap: () => controller.compartilhar(documento),
+                    onTap: () => PdfReaderLauncher.abrirDocumento(documento),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -78,6 +79,7 @@ class MyFilesView extends StatelessWidget {
                           onSelected: (opcao) =>
                               _executarAcao(context, opcao, documento),
                           itemBuilder: (context) => const [
+                            PopupMenuItem(value: 'ler', child: Text('Ler')),
                             PopupMenuItem(
                                 value: 'compartilhar',
                                 child: Text('Compartilhar')),
@@ -228,6 +230,9 @@ class MyFilesView extends StatelessWidget {
   void _executarAcao(
       BuildContext context, String opcao, PdfDocumentModel documento) {
     switch (opcao) {
+      case 'ler':
+        PdfReaderLauncher.abrirDocumento(documento);
+        break;
       case 'compartilhar':
         controller.compartilhar(documento);
         break;

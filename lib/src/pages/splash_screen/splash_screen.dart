@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../config/onboarding_prefs.dart';
 import '../../enum/pages_routes.dart';
+import '../../services/incoming_pdf.dart';
 
 /// A inicialização real (Hive, DI dos controllers) já termina em
 /// `main.dart` antes de `runApp` — não há uma segunda etapa de
@@ -25,6 +26,14 @@ class _SplashScreenState extends State<SplashScreen> {
         OnboardingPrefs.visto
             ? PagesRoutes.SelectPdfTypeView.path
             : PagesRoutes.welcomeView.path,
+      );
+      // Se o app foi aberto *por* um PDF ("Abrir com"), o leitor empilha
+      // por cima da tela inicial — assim voltar leva à Início em vez de
+      // fechar o app. Depois do frame, para a rota acima já estar montada
+      // (o Future de `offNamed` só completa quando a rota nova é fechada,
+      // então não dá para aguardá-lo aqui).
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => IncomingPdf.verificarPendente(),
       );
     });
   }

@@ -25,6 +25,32 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- Faz o DS PDF aparecer em "Abrir com" para arquivos PDF. Sem
+                 isto o app só leria PDFs escolhidos de dentro dele; com
+                 isto ele é um leitor de PDF do sistema, que é o que o
+                 usuário pediu (ver specs/CHANGELOG.md, 2026-09-04).
+                 O filtro de content:// cobre gerenciadores de arquivos,
+                 anexos de e-mail e downloads; o de file:// cobre apps
+                 antigos que ainda mandam caminho direto. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="content" android:mimeType="application/pdf"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="file" android:mimeType="application/pdf"/>
+            </intent-filter>
+            <!-- "Compartilhar com" a partir de outro app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/pdf"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

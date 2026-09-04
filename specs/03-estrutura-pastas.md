@@ -40,6 +40,11 @@ ds_pdf/
 │       │   │   ├── abstract/pdf_editor_controller_abstract.dart
 │       │   │   ├── controller/pdf_editor_controller.dart
 │       │   │   └── view/pdf_editor_view.dart
+│       │   ├── pdf_reader/                 # Leitor de PDF: abrir, navegar, pesquisar dentro do arquivo
+│       │   │   ├── abstract/pdf_reader_controller_abstract.dart
+│       │   │   ├── controller/pdf_reader_controller.dart
+│       │   │   ├── pdf_reader_launcher.dart    # Pontos de entrada do leitor (Início, Meus Arquivos, "Abrir com")
+│       │   │   └── view/pdf_reader_view.dart
 │       │   ├── scanner/                    # Scanner de documentos via câmera
 │       │   │   ├── abstract/scanner_controller_abstract.dart
 │       │   │   ├── controller/scanner_controller.dart
@@ -63,7 +68,9 @@ ds_pdf/
 │       ├── repositories/
 │       │   └── pdf_documents_repository.dart  # Único repositório do projeto; encapsula as boxes Hive
 │       ├── services/                # Integrações com APIs nativas via platform channel (sem estado, sem GetX)
-│       │   └── content_uri_reader.dart  # Lê bytes de URIs "content://"/"file://" (Android) via ContentResolver nativo ou File
+│       │   ├── content_uri_reader.dart  # Lê bytes de URIs "content://"/"file://" (Android) via ContentResolver nativo ou File
+│       │   ├── incoming_pdf.dart        # PDFs que chegam de outro app ("Abrir com"), pelo mesmo canal nativo
+│       │   └── pdf_file_picker.dart     # Escolha de um PDF do aparelho (file_picker) para o leitor
 │       └── utils/                   # Funções puras de formatação/apoio, sem estado e sem GetX
 │           └── formatters.dart      # Formata tamanho de arquivo, data relativa e metadados de documento (Início/Meus Arquivos)
 ├── test/
@@ -79,9 +86,9 @@ ds_pdf/
 - **`config/`** — configuração visual/global do app: paleta de cores, `ThemeData` claro/escuro e o controller que decide qual tema está ativo.
 - **`enum/`** — enums compartilhados por todo o app: rotas, e as opções de fonte/alinhamento usadas pela feature Texto→PDF. Qualquer novo enum de domínio (ex.: tipo de filtro do scanner) deveria entrar aqui.
 - **`models/`** — estruturas de dados puras, reutilizadas entre o repositório e as features que exibem/editam esses dados (hoje só `my_files/`, mas os 3 controllers geradores também usam `PdfDocumentModel` indiretamente via o repositório).
-- **`pages/<feature>/`** — cada funcionalidade do app (Scanner, Seleção de tipo, Splash, Texto→PDF, Meus Arquivos, Editor de PDF) é uma pasta isolada com seu próprio controller/view/abstract. Isso facilita adicionar ou remover uma feature inteira sem tocar em outras.
+- **`pages/<feature>/`** — cada funcionalidade do app (Leitor de PDF, Scanner, Seleção de tipo, Splash, Texto→PDF, Meus Arquivos, Editor de PDF) é uma pasta isolada com seu próprio controller/view/abstract. Isso facilita adicionar ou remover uma feature inteira sem tocar em outras.
 - **`pages_routes/`** — ponto único onde as rotas de todas as features são registradas no `GetMaterialApp`.
 - **`repositories/`** — acesso a dados persistidos (Hive). Isola qualquer controller de saber como/onde os dados são guardados.
-- **`services/`** — integrações com código nativo (platform channels), sem estado de UI/GetX. Hoje só `ContentUriReader`, que substitui o pacote `uri_to_file` (removido — travava indefinidamente em URIs `content://` em aparelhos reais) por uma chamada direta ao `ContentResolver` do Android via `MainActivity.kt` — também trata URIs `file://` (formato que o scanner devolve nativamente em alguns aparelhos; ver CHANGELOG 2026-08-16).
+- **`services/`** — integrações com código nativo (platform channels) e com seletores do sistema, sem estado de UI/GetX. `ContentUriReader` substitui o pacote `uri_to_file` (removido — travava indefinidamente em URIs `content://` em aparelhos reais) por uma chamada direta ao `ContentResolver` do Android via `MainActivity.kt` — também trata URIs `file://` (formato que o scanner devolve nativamente em alguns aparelhos; ver CHANGELOG 2026-08-16). `IncomingPdf` usa esse mesmo canal para os PDFs que outro app manda abrir, e `PdfFilePicker` embrulha o `file_picker` para o botão "Abrir PDF".
 - **`utils/`** — funções puras (sem widget, sem GetX, sem I/O além de leitura de metadado de arquivo) reaproveitadas por mais de uma tela. Hoje só `Formatters`.
 - **`assets/img/`** — todos os assets de imagem do app (minúsculo, conforme declarado em `pubspec.yaml`; corrigido nesta sessão — ver [08-auditoria.md](08-auditoria.md)).

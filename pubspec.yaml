@@ -1,5 +1,5 @@
 name: ds_pdf
-description: "DS PDF — escaneie documentos, converta fotos e textos em PDF, e organize seus arquivos."
+description: "DS PDF — leia PDFs, escaneie documentos, converta fotos e textos em PDF, e organize seus arquivos."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -45,7 +45,16 @@ dependencies:
   flutter_doc_scanner: ^0.0.21
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  syncfusion_flutter_pdf: ^29.1.38
+  # Família Syncfusion presa em 27.2.5 (versão contemporânea do Flutter
+  # 3.24.5 deste projeto). O `syncfusion_flutter_pdfviewer` precisa casar
+  # exatamente com o `syncfusion_flutter_pdf`, e a partir da 28.2.x o
+  # visualizador usa `Color.withValues`, que só existe no Flutter >=3.27 —
+  # compila no `pub get` e quebra no `build`. As versões >=29.1.39 já
+  # exigem Dart >=3.7.0 no próprio pubspec. As APIs que o app usa
+  # (PdfDocument/PdfMargins/PdfBitmap/PdfStandardFont, createTemplate,
+  # drawPdfTemplate) são iguais nas duas faixas.
+  syncfusion_flutter_pdf: 27.2.5
+  syncfusion_flutter_pdfviewer: 27.2.5
   signature: ^5.5.0
   google_fonts: ^6.3.0
   lucide_icons_flutter: ^3.1.15
@@ -61,6 +70,8 @@ dependencies:
   # em vez de `quill_native_bridge`, evitando esse pacote de vez.
   flutter_quill: ^9.6.0
   flutter_quill_to_pdf: ^1.2.2
+  # Seleção de um PDF do aparelho para o leitor ("Abrir PDF").
+  file_picker: ^8.1.7
 
 dev_dependencies:
   flutter_test:

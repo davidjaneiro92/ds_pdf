@@ -2,21 +2,22 @@
 
 ## Objetivo do aplicativo
 
-O **DS PDF** é um aplicativo Flutter para digitalização e geração de documentos em PDF, no estilo Adobe Scan / Microsoft Lens / CamScanner, com identidade visual própria. Permite ao usuário transformar fotos e páginas escaneadas com a câmera em arquivos PDF prontos para compartilhar.
+O **DS PDF** é um aplicativo Flutter para **ler**, digitalizar e gerar documentos em PDF, no estilo Adobe Scan / Microsoft Lens / CamScanner, com identidade visual própria. Desde 2026-09-04 a leitura é a função padrão: o app abre PDFs que já existem no aparelho (e se registra no sistema para aparecer em "Abrir com"), além de transformar fotos e páginas escaneadas com a câmera em arquivos PDF prontos para compartilhar.
 
 ## Problema que resolve
 
-Elimina a necessidade de um scanner físico ou de apps de terceiros para digitalizar documentos, recibos e páginas de texto, oferecendo captura via câmera com correção automática de perspectiva e geração de PDF em poucos toques.
+Elimina a necessidade de um leitor de PDF separado e de um scanner físico: o mesmo app abre e lê os PDFs do aparelho e digitaliza documentos, recibos e páginas de texto, com captura via câmera, correção automática de perspectiva e geração de PDF em poucos toques.
 
 ## Público-alvo
 
-Usuários finais (pessoa física ou pequenos negócios) que precisam digitalizar documentos avulsos no dia a dia, sem necessidade de recursos corporativos avançados (assinatura digital, OCR, nuvem).
+Usuários finais (pessoa física ou pequenos negócios) que precisam ler e digitalizar documentos avulsos no dia a dia, sem necessidade de recursos corporativos avançados (assinatura digital, OCR, nuvem).
 
 ## Funcionalidades
 
 ### Implementadas
 | Funcionalidade | Status | Descrição |
 |---|---|---|
+| Leitor de PDF | ✅ Completo (2026-09-04) | Abre um PDF do aparelho (botão "Abrir PDF", ação primária da Início), de Meus Arquivos/Recentes, ou vindo de outro app por "Abrir com" — o app está registrado no Android para `application/pdf`. Rolagem contínua com zoom, seleção de texto, navegação por página (setas + "ir para página"), pesquisa de texto dentro do documento com contador de ocorrências, compartilhar, e "Salvar em Meus Arquivos" quando o arquivo veio de fora. Usa `syncfusion_flutter_pdfviewer` — ver a nota de versão em [07-engenharia.md](07-engenharia.md). |
 | Foto (galeria) → PDF | ✅ Completo | Seleciona múltiplas imagens da galeria e gera um PDF (uma imagem por página), com compartilhamento. |
 | Scanner por câmera → PDF | ✅ Completo | Usa o scanner nativo do sistema (ML Kit no Android, VisionKit no iOS) com detecção de bordas, correção de perspectiva e filtros automáticos; monta as páginas capturadas em um PDF e compartilha. |
 | Texto → PDF | ✅ Completo (reescrito em 2026-08-17) | Editor de texto **rico** (`flutter_quill`): negrito/itálico/sublinhado, alinhamento, tamanho, cor curada, listas, quebra de página manual; barra de formatação própria em 3 faixas; tela "Páginas" de pré-visualização; cabeçalho/rodapé opcionais numa folha inferior; gera PDF via `flutter_quill_to_pdf` e compartilha. Contagem de páginas do rodapé é uma estimativa por caracteres (ver [07-engenharia.md](07-engenharia.md#backlog-funcionalidades-futuras), item 4). |
@@ -35,4 +36,5 @@ Usuários finais (pessoa física ou pequenos negócios) que precisam digitalizar
 5. **Sessão 5** (concluída, 2026-07-23) — correção do travamento do Scanner, botão Meus Arquivos oculto, campo de texto maior em Texto→PDF, identidade visual seguindo a cor da logo e tema claro/escuro.
 6. **Sessão 6** (concluída, 2026-08-16) — correção do bug real do Scanner (URIs `file://` não tratadas — ver [07-engenharia.md](07-engenharia.md)) e primeira metade do replanejamento visual a partir de um documento de referência enviado pelo usuário: nova paleta, tela Início (Criar PDF + Recentes), Scanner (contagem/grade/destino), Meus Arquivos (metadados/contagens), progresso determinado e cancelável na geração de PDF, estado vazio explicativo em Meus Arquivos.
 7. **Sessão 7** (concluída, 2026-08-17) — segunda metade do replanejamento visual: fundação (cantos retos, `BlueprintFrame`, ícones Lucide, fonte mono), feedback de sistema (sucesso/erro), Editor de PDF redesenhado (grade + barra inferior), Texto→PDF reescrito como editor de texto rico (`flutter_quill`) com tela "Páginas", Splash em PT-BR + boas-vindas no primeiro uso. Ver [07-engenharia.md](07-engenharia.md) para as simplificações conscientes assumidas (marcadores de página automáticos como estimativa, não embeds reais) e a história de compatibilidade de versões do `flutter_quill`/`flutter_quill_to_pdf` com o Flutter 3.24.5 deste projeto.
-8. **Futuro** — testes automatizados mais amplos, marca d'água no Editor de PDF (descartada, pode voltar como melhoria opcional), reposicionamento arrastável da assinatura, miniatura real de página em Meus Arquivos, atualizar Flutter SDK para liberar versões mais novas de `flutter_quill`/`flutter_quill_to_pdf`.
+8. **Sessão 8** (concluída, 2026-09-04) — o app virou também um **leitor** de PDF: nova tela de leitura, botão "Abrir PDF" como ação primária da Início (Escanear desceu para "Criar PDF"), toque em Recentes/Meus Arquivos abre no leitor em vez de compartilhar, e `intent-filter` no Android para o DS PDF aparecer em "Abrir com".
+9. **Futuro** — testes automatizados mais amplos, marca d'água no Editor de PDF (descartada, pode voltar como melhoria opcional), reposicionamento arrastável da assinatura, miniatura real de página em Meus Arquivos, atualizar Flutter SDK para liberar versões mais novas de `flutter_quill`/`flutter_quill_to_pdf`.

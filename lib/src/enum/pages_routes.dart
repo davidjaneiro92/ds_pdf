@@ -11,6 +11,8 @@ enum PagesRoutes {
 
   textToPdfPaginasView('/text_to_pdf_paginas_view'),
 
+  pdfReaderView('/pdf_reader_view'),
+
   myFilesView('/my_files_view'),
 
   pdfEditorView('/pdf_editor_view');

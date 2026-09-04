@@ -11,6 +11,7 @@ import 'package:ds_pdf/src/pages/select_PDF_type/controller/select_PDF_type_cont
 import 'package:ds_pdf/src/pages/text_to_pdf/controller/text_to_pdf_controller.dart';
 import 'package:ds_pdf/src/pages_routes/app_pages.dart';
 import 'package:ds_pdf/src/repositories/pdf_documents_repository.dart';
+import 'package:ds_pdf/src/services/incoming_pdf.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,9 @@ void main() async {
   Get.put(ScannerController());
   Get.put(TextToPdfController());
   Get.put(MyFilesController());
+
+  // PDFs abertos por outro app ("Abrir com") com o DS PDF já rodando.
+  IncomingPdf.iniciar();
 
   runApp(const MyApp());
 }

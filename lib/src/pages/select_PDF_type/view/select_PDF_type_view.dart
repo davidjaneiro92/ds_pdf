@@ -8,14 +8,16 @@ import '../../../config/theme_controller.dart';
 import '../../../enum/pages_routes.dart';
 import '../../../models/pdf_document_model.dart';
 import '../../../utils/formatters.dart';
+import '../../pdf_reader/pdf_reader_launcher.dart';
 import '../abstract/select_PDF_type_contoller_abstract.dart';
 
-/// Tela inicial replanejada (ver `especificacao/replanejamento/`, telas R1
-/// claro/escuro): uma ação primária (Escanear), duas secundárias
-/// (Galeria/Texto) e uma lista de "Recentes" que devolve acesso a Meus
-/// Arquivos sem precisar de um botão dedicado na tela — antes esse acesso
-/// tinha sido escondido a pedido do usuário; o replanejamento reabre pelo
-/// caminho de "Recentes".
+/// Tela inicial (ver `especificacao/replanejamento/`, telas R1 claro/escuro).
+///
+/// Desde 2026-09-04 a tela é dividida em duas seções: **Ler PDF**, com a
+/// ação primária "Abrir PDF" no topo — ler passou a ser a função padrão do
+/// app —, e **Criar PDF**, com Escanear/Galeria/Texto. A lista de
+/// "Recentes" fecha a tela e agora abre cada item direto no leitor, em vez
+/// de só levar a Meus Arquivos.
 class SelectPdfTypeView extends StatelessWidget {
   final SelectPdfTypeContollerAbstract controller = Get.find();
 
@@ -37,9 +39,13 @@ class SelectPdfTypeView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Criar PDF', style: _rotuloSecao(theme)),
+                    Text('Ler PDF', style: _rotuloSecao(theme)),
                     const SizedBox(height: 12),
                     _cardPrimario(context),
+                    const SizedBox(height: 28),
+                    Text('Criar PDF', style: _rotuloSecao(theme)),
+                    const SizedBox(height: 12),
+                    _cardEscanear(context),
                     const SizedBox(height: 14),
                     Row(
                       children: [
@@ -114,13 +120,17 @@ class SelectPdfTypeView extends StatelessWidget {
   TextStyle? _rotuloSecao(ThemeData theme) => theme.textTheme.titleSmall
       ?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6));
 
+  /// Ação primária da tela: **abrir** um PDF que já existe no aparelho. Era
+  /// o "Escanear documento" até 2026-09-04, quando o app passou a ser
+  /// também um leitor de PDF e a leitura virou a função padrão — escanear
+  /// desceu para a seção "Criar PDF" (ver `specs/CHANGELOG.md`).
   Widget _cardPrimario(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
       color: theme.colorScheme.primary,
       child: InkWell(
         onTap: () async {
-          await Get.toNamed(PagesRoutes.scannerView.path);
+          await PdfReaderLauncher.escolherEAbrir();
           controller.carregarRecentes();
         },
         child: BlueprintFrame(
@@ -130,7 +140,7 @@ class SelectPdfTypeView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(LucideIcons.scanText,
+                Icon(LucideIcons.bookOpen,
                     size: 40, color: theme.colorScheme.onPrimary),
                 const SizedBox(width: 18),
                 Expanded(
@@ -139,7 +149,7 @@ class SelectPdfTypeView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Escanear documento',
+                        'Abrir PDF',
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: theme.colorScheme.onPrimary,
                           fontSize: 22,
@@ -147,10 +157,57 @@ class SelectPdfTypeView extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        'Detecta as bordas e corrige a perspectiva',
+                        'Ler, pesquisar e navegar por um arquivo do aparelho',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color:
                               theme.colorScheme.onPrimary.withOpacity(0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Escanear em formato largo (ícone à esquerda, texto à direita): continua
+  /// sendo a principal forma de *criar* um PDF, mas já não disputa o topo da
+  /// tela com a leitura.
+  Widget _cardEscanear(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          await Get.toNamed(PagesRoutes.scannerView.path);
+          controller.carregarRecentes();
+        },
+        child: BlueprintFrame(
+          child: Container(
+            height: 84,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Icon(LucideIcons.scanText,
+                    size: 28, color: theme.colorScheme.primary),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Escanear documento',
+                          style: theme.textTheme.titleMedium),
+                      Text(
+                        'Detecta as bordas e corrige a perspectiva',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                     ],
@@ -234,7 +291,7 @@ class SelectPdfTypeView extends StatelessWidget {
   Widget _itemRecente(BuildContext context, PdfDocumentModel documento) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: () => Get.toNamed(PagesRoutes.myFilesView.path),
+      onTap: () => PdfReaderLauncher.abrirDocumento(documento),
       child: Container(
         height: 64,
         decoration: BoxDecoration(

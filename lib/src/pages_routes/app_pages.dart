@@ -3,6 +3,8 @@ import 'package:ds_pdf/src/models/pdf_document_model.dart';
 import 'package:ds_pdf/src/pages/my_files/view/my_files_view.dart';
 import 'package:ds_pdf/src/pages/pdf_editor/controller/pdf_editor_controller.dart';
 import 'package:ds_pdf/src/pages/pdf_editor/view/pdf_editor_view.dart';
+import 'package:ds_pdf/src/pages/pdf_reader/controller/pdf_reader_controller.dart';
+import 'package:ds_pdf/src/pages/pdf_reader/view/pdf_reader_view.dart';
 import 'package:ds_pdf/src/pages/scanner/view/scanner_view.dart';
 import 'package:ds_pdf/src/pages/select_PDF_type/view/select_PDF_type_view.dart';
 import 'package:ds_pdf/src/pages/text_to_pdf/view/text_to_pdf_paginas_view.dart';
@@ -36,6 +38,13 @@ abstract class AppPages {
     GetPage(
       page: () => TextToPdfPaginasView(),
       name: PagesRoutes.textToPdfPaginasView.path,
+    ),
+    GetPage(
+      page: () => PdfReaderView(),
+      name: PagesRoutes.pdfReaderView.path,
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => PdfReaderController(Get.arguments as PdfReaderArgs));
+      }),
     ),
     GetPage(
       page: () => MyFilesView(),

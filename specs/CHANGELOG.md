@@ -2,6 +2,45 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-09-04 — DS PDF passa a **ler** PDFs (não só gerar)
+
+Pedido do usuário: "eu não quero só que ele gere, eu quero que ele seja um leitor de PDF... o padrão inicial é que ele leia PDFs... ele tem que ter um botão no projeto que leia PDF".
+
+### Nova tela: Leitor de PDF
+[`lib/src/pages/pdf_reader/`](../lib/src/pages/pdf_reader/) (abstract/controller/view, mesmo padrão das outras features), com `syncfusion_flutter_pdfviewer`:
+
+- rolagem contínua com zoom e seleção de texto;
+- navegação por página no rodapé: setas anterior/próxima e "página X de Y" (tocar abre "Ir para página");
+- **pesquisa dentro do documento** pela lupa da barra superior, com contador de ocorrências ("3/17") e setas para percorrê-las;
+- ações no rodapé: **Compartilhar**, **Salvar em Meus Arquivos** (só para arquivo externo) e **Editar** (só para documento que já é de Meus Arquivos, leva ao Editor de PDF).
+
+### A leitura virou a função padrão
+- Na Início, a ação primária deixou de ser "Escanear documento" e passou a ser **"Abrir PDF"** (seletor de arquivos do sistema, via `file_picker`). Escanear desceu para a seção "Criar PDF", num card largo, junto de Galeria e Texto. A tela agora tem duas seções nomeadas: **Ler PDF** e **Criar PDF**.
+- Tocar num item de **Recentes** ou de **Meus Arquivos** agora **abre o PDF no leitor**. Antes, tocar disparava o compartilhamento direto — comportamento surpreendente, e o compartilhar continua disponível no menu e dentro do próprio leitor. O menu de Meus Arquivos ganhou o item "Ler".
+
+### "Abrir com": o app é um leitor de PDF do sistema
+`intent-filter` em `AndroidManifest.xml` (`VIEW` para `content://` e `file://` com mime `application/pdf`, e `SEND`) fazem o DS PDF aparecer na lista de "Abrir com" de gerenciadores de arquivos, anexos de e-mail e Downloads. `MainActivity.kt` ganhou `consumirPdfRecebido`, que copia o conteúdo da URI recebida para o cache **em stream** e devolve um caminho de arquivo real — o visualizador precisa de um `File`, e uma `content://` URI não é um. Cobre os dois casos (app fechado sendo aberto pelo PDF, e app já aberto recebendo um novo via `onNewIntent`/`singleTop`). Detalhes e as armadilhas de ordem de navegação estão em [07-engenharia.md](07-engenharia.md).
+
+### Rebaixamento obrigatório do Syncfusion: 29.1.38 → 27.2.5
+O `syncfusion_flutter_pdfviewer` tem que casar **exatamente** com a versão do `syncfusion_flutter_pdf`, e nenhuma versão da faixa 28/29 serve neste projeto:
+
+- **28.1.38–29.1.38** dependem de `device_info_plus ^11`, que conflita com o `^10` exigido pelo `flutter_quill` 9.x (contornável com `dependency_overrides`, e foi o que tentei primeiro);
+- mas **≥28.2.x** usam `Color.withValues`, que só existe no Flutter ≥3.27. O `pub get` resolve tranquilo e **o erro só aparece no `flutter build`** — exatamente a mesma armadilha do `flutter_quill` 11.x em 2026-08-17. Foi assim que 29.1.38 falhou: `pub get` ok, build quebrado com dezenas de "The method 'withValues' isn't defined for the class 'Color'";
+- **≥29.1.39** já exigem Dart ≥3.7.0 no próprio pubspec.
+
+A saída foi fixar os dois em **27.2.5** (sem `^`), versão contemporânea do Flutter 3.24.5. Com isso o override de `device_info_plus` também deixou de ser necessário. As APIs Syncfusion que o app já usava (`PdfDocument`, `PdfMargins`, `PdfBitmap`, `PdfStandardFont`, `createTemplate()`, `drawPdfTemplate()`) são idênticas nas duas faixas — Editor de PDF e Texto→PDF não precisaram de mudança nenhuma.
+
+### Decisão: PDF externo não entra sozinho em Meus Arquivos
+Tanto o `file_picker` quanto o intent devolvem um caminho no **cache**, que o sistema pode limpar a qualquer momento. Registrar isso no Hive criaria entradas apontando para arquivos que somem sozinhos (e `excluir()` tentaria apagar um arquivo inexistente). Em vez disso o leitor mostra "Salvar em Meus Arquivos", que copia para o diretório do app **antes** de registrar, com nome prefixado por timestamp para não colidir.
+
+### Verificação
+- Novo teste de regressão [test/pdf_reader_view_test.dart](../test/pdf_reader_view_test.dart), rodando em 390×844 como o de Texto→PDF: abre o leitor, mostra a contagem de páginas, abre e fecha a pesquisa, sempre checando `tester.takeException()`. O canal de plataforma `syncfusion_flutter_pdfviewer` (que não existe em `flutter test`) é simulado devolvendo um documento de 2 páginas e um PNG 1×1 por página — o que se testa é a nossa tela em volta do visualizador, não o visualizador. Detalhe: o `SfPdfViewer` agenda um timer de 500ms ao montar, então o teste precisa avançar o relógio no fim, senão termina com "A Timer is still pending".
+- A tela Início foi verificada num teste temporário na mesma largura. Ela acusou um estouro de 12px nos cards Galeria/Texto que **era falso positivo**: sem rede, o `google_fonts` falha em `flutter test` e o texto cai numa fonte de fallback bem mais larga. Registrando fontes reais do Windows com os nomes que o `google_fonts` injeta (`BarlowCondensed_regular`, `Barlow_regular`, `RobotoMono_regular` — mesma técnica de 2026-08-18) o estouro desaparece. Fica o registro para a próxima vez que um estouro aparecer só em teste.
+- `flutter analyze` em 19 avisos (baseline mantido), `flutter test` com 7 testes passando, `flutter build apk --debug` ok.
+
+### Falta conferir no aparelho
+"Abrir com" e o seletor de arquivos só existem de verdade no dispositivo. Depois de instalar o APK, vale conferir: (a) o DS PDF aparece ao tocar num PDF pelo gerenciador de arquivos; (b) o botão "Abrir PDF" da Início abre o seletor e o arquivo escolhido carrega; (c) voltar do leitor cai na Início, não fecha o app.
+
 ## 2026-08-18 — Texto→PDF: fidelidade ao mockup + robustez de layout
 
 O usuário comparou a tela com o mockup do documento de referência e apontou que não estava igual. Diferenças corrigidas em [text_to_pdf_view.dart](../lib/src/pages/text_to_pdf/view/text_to_pdf_view.dart) e [text_to_pdf_paginas_view.dart](../lib/src/pages/text_to_pdf/view/text_to_pdf_paginas_view.dart):
