@@ -2,6 +2,52 @@
 
 Registro de alterações relevantes do projeto. Toda alteração de negócio ou arquitetura deve ser registrada aqui.
 
+## 2026-09-06 — Release 1.2.0: targetSdk 36 e o ciclo de rejeições do Play Console
+
+Primeiro envio do app com o leitor de PDF. O Console rejeitou três vezes, cada uma por um motivo diferente — todas registradas aqui porque nenhuma delas aparece no `flutter build`, que passa limpo em todos os casos.
+
+1. **"O código de versão N já foi usado"** — `versionCode` (o número depois do `+` em `pubspec.yaml`) precisa ser maior que qualquer um já enviado, mesmo que o envio anterior tenha sido rejeitado por outro motivo. Passou por 2 → 3 → 4 → 5 até achar um livre. O Console lista os códigos em uso em *Versão → Painel de apps → Explorar pacotes de apps*.
+2. **"o nível desejado da API precisa ser de pelo menos 36"** — `targetSdk` subiu de 35 para 36 (Android 16) em [android/app/build.gradle.kts](../android/app/build.gradle.kts), e `compileSdk` junto, porque o AGP exige `compileSdk >= targetSdk`. A plataforma `android-36` já estava instalada; foi preciso fixar `buildToolsVersion = "35.0.0"` porque o Build-Tools 36.0.0 não existe nesta máquina e, sem a linha, o AGP tenta baixá-lo e falha (não há internet para o `sdkmanager` aqui). O Build-Tools é o empacotador (aapt2/d8), não a plataforma alvo, então o 35.0.0 compila contra a API 36 sem problema.
+3. **"Este APK não será veiculado aos usuários, porque ele está completamente oculto por um ou mais APKs com códigos de versão superiores"** — não é código: a versão em rascunho ficou com um pacote antigo (código 2) anexado junto com o novo. Resolve-se removendo o pacote antigo na tela de criação da versão.
+
+**A exigência de `targetSdk` sobe todo ano e é verificada no envio, não no build.** Histórico deste app: 34 rejeitado pedindo 35 (2026-07-23), 35 rejeitado pedindo 36 (2026-09-06). Vale conferir antes de cada release, em vez de descobrir no upload.
+
+Versão publicada: `1.2.0+5`. Procedimento completo em [07-engenharia.md](07-engenharia.md).
+
+## 2026-09-05 (2) — Correção: Texto→PDF falhava ao gerar (e o Editor de PDF também, sem ninguém ter notado)
+
+Reportado pelo usuário com log do aparelho: digitar um texto e gerar o PDF caía em "Verifique se há espaço de armazenamento" num celular com 3 GB livres. O log mostrava só `TextToPdfController.gerarPDF falhou: Null check operator used on a null value`.
+
+**Causa**: `PdfPageCollection.insert(indice, tamanho, margens)` do `syncfusion_flutter_pdf` lança `Null check operator used on a null value` em **toda** chamada — documento vazio, documento com páginas, qualquer índice. A pilha aponta para `_getValidParent`, na linha `_helper._crossTable!.getObject(obj)!`.
+
+**Não foi o rebaixamento de ontem** (29.1.38 → 27.2.5 para o leitor de PDF). Essa foi a primeira hipótese, e estava errada: montei um pacote isolado no scratchpad dependendo só do `syncfusion_flutter_pdf: 29.1.38` e rodei a mesma chamada — falha idêntica. O código de `_getValidParent` é byte a byte o mesmo nas duas versões. É um defeito do pacote que sempre esteve lá; o fluxo simplesmente nunca tinha sido executado num aparelho.
+
+**Correção**: definir `pageSettings.size`/`pageSettings.margins` e usar `pages.add()`, que respeita tamanho e margem por página (verificado com três páginas de tamanhos diferentes). Aplicado em [text_to_pdf_controller.dart](../lib/src/pages/text_to_pdf/controller/text_to_pdf_controller.dart) e em [pdf_editor_controller.dart](../lib/src/pages/pdf_editor/controller/pdf_editor_controller.dart).
+
+**O Editor de PDF tinha o mesmo defeito e ninguém tinha reportado**: `salvar()` usava a mesma chamada, então salvar uma reordenação/exclusão/assinatura falhava exatamente igual. Corrigido junto.
+
+**Duas coisas que esconderam o problema por semanas**, ambas ajustadas:
+
+- o `catch` fazia `debugPrint('...: $e')` sem a pilha. Sem ela, "Null check operator used on a null value" não diz de onde vem, e foi só capturando `(e, pilha)` que o `_getValidParent` apareceu;
+- a mensagem de erro **afirmava uma causa que nunca foi verificada** ("verifique o espaço de armazenamento"), para qualquer exceção. Mandou o usuário caçar espaço num aparelho com 3 GB livres. Trocada por uma mensagem que não inventa diagnóstico.
+
+**Regressão coberta** por [test/pdf_merge_test.dart](../test/pdf_merge_test.dart): um teste trava o `pageSettings` + `add()` com páginas de tamanhos diferentes, outro roda o pipeline inteiro de Texto→PDF (Delta → `flutter_quill_to_pdf` → merge Syncfusion → cabeçalho/rodapé → bytes) e confere que a saída começa com `%PDF-`.
+
+### Defeito conhecido, ainda não corrigido: acentuação no PDF de texto
+Durante a investigação apareceu no log `Helvetica has no Unicode support`. As fontes de PDF que o Texto→PDF oferece (Helvetica/Times/Courier, via `pw.Font.helvetica()` e afins) são fontes Type1 padrão **sem suporte a Unicode** — não têm os glifos de `ç`, `ã`, `é`. Gerar não quebra (testado com "Ação, coração, não é possível" — o PDF sai com 38 KB), mas os caracteres acentuados não saem corretos, o que é grave num app em português. A correção exige embutir uma fonte TTF de verdade (bundle nos assets, ou `PdfGoogleFonts` do `printing`, que já é dependência mas baixa sob demanda). Não foi feito nesta leva por estar fora do que foi pedido — está aqui para não se perder.
+
+## 2026-09-05 — Correção: os botões do diálogo de "PDF gerado" não faziam nada
+
+Reportado pelo usuário no fluxo do Scanner: depois de gerar o PDF, nem "Compartilhar" nem "Ver em Meus Arquivos" funcionavam — o diálogo fechava e nada acontecia.
+
+**Causa** (em [loading.dart](../lib/src/components/loading/view/loading.dart)): os três botões de ação chamavam `hideLoading()` **antes** de ler o callback, e `hideLoading()` zera `_aoCompartilhar`, `_aoVerEmMeusArquivos` e `_aoTentarNovamente`. A linha seguinte lia o getter, que já valia `null`, e `null?.call()` é perfeitamente legal em Dart — nenhum erro, nenhum log, nada. Corrigido lendo a ação numa variável local antes de fechar o diálogo.
+
+**Não era só no Scanner.** Os três fluxos de geração (Scanner, Galeria e Texto) usam este mesmo diálogo, com o mesmo código de botão; o "Tentar de novo" do estado de erro tinha o mesmo defeito. O usuário só percebeu pelo Scanner porque foi o fluxo que usou.
+
+**Regressão coberta** por [test/loading_dialog_test.dart](../test/loading_dialog_test.dart) (4 casos: os dois botões de sucesso, "Tentar de novo", e o estado de erro sem ação de recuperação). Confirmado que o teste **falha** com o código antigo, exatamente com o sintoma relatado — `Expected: <1> Actual: <0>`, com o diálogo fechando.
+
+**Registro de fontes de teste virou helper compartilhado**: [test/helpers/fontes_reais.dart](../test/helpers/fontes_reais.dart). Pela segunda vez um estouro de layout apareceu só em teste (61px na linha de botões do estado de erro) e era falso — sem rede o `google_fonts` falha e o texto cai numa fonte bem mais larga que a real. Registrar fontes do sistema sob os nomes que o `google_fonts` injeta resolve; o helper é silencioso quando os arquivos não existem (outra máquina), caso em que a medição volta a ser conservadora.
+
 ## 2026-09-04 — DS PDF passa a **ler** PDFs (não só gerar)
 
 Pedido do usuário: "eu não quero só que ele gere, eu quero que ele seja um leitor de PDF... o padrão inicial é que ele leia PDFs... ele tem que ter um botão no projeto que leia PDF".

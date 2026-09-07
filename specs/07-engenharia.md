@@ -73,6 +73,48 @@ O app não conseguia rodar no Windows nem gerar APK (debug ou release) nesta má
 - **`GRADLE_USER_HOME`** definido como variável de ambiente do usuário do Windows, apontando para `E:\bild_flutter\gradle_home` — o cache do Gradle (que pode passar de 5 GB) ficava em `C:\Users\<usuário>\.gradle` por padrão, e o disco C: desta máquina tem pouquíssimo espaço livre. Isso é uma configuração de máquina, não do projeto — outra máquina com mais espaço em C: não precisa disso.
 - O diretório de build do projeto (`ds_pdf\build\`) foi transformado numa **junction do NTFS** apontando para `E:\bild_flutter\build\ds_pdf`, pelo mesmo motivo de espaço em disco.
 
+## Publicar na Play Store: o passo a passo (2026-09-06)
+
+```
+flutter build appbundle --release
+```
+
+O arquivo sai em `build/app/outputs/bundle/release/app-release.aab` — é ele que se envia no Play Console. `flutter build apk` **não** serve para publicar; gera `.apk`, e a Play Store só aceita `.aab`. Se a janela de upload aparecer vazia procurando `*.aab`, é porque esse comando ainda não rodou neste checkout (a pasta `build/` não é versionada, então some a cada `flutter clean` ou clone novo).
+
+**Antes de cada envio, subir a versão em `pubspec.yaml`** (`version: <nome>+<código>`). O número depois do `+` é o `versionCode` do Android, e a Play Store **recusa** um envio cujo `versionCode` já foi usado, mesmo que aquele envio tenha sido rejeitado por outro motivo. Na dúvida, incremente.
+
+Checagens que valem a pena depois do build:
+
+- **assinatura**: `jarsigner -verify -certs app-release.aab` tem que dizer "jar verified", e o arquivo de assinatura dentro de `META-INF/` tem que ser `UPLOAD.RSA` (o alias do `android/upload-keystore.jks`). Se aparecer `CERT.RSA`/`ANDROIDD.RSA`, o build caiu na assinatura de debug — normalmente porque `android/key.properties` não existe naquela máquina;
+- **`targetSdk`**: revisar a cada envio, a exigência mínima da Play sobe todo ano (ver Riscos). Ela é verificada **no envio, não no build** — o Gradle compila feliz com um alvo desatualizado e a rejeição só aparece no Console. Histórico: 34 rejeitado pedindo 35 (2026-07-23), 35 rejeitado pedindo 36 (2026-09-06). `targetSdk` e `compileSdk` sobem juntos, porque o AGP exige `compileSdk >= targetSdk`.
+
+Um erro do Console que **não** se resolve no código: *"Este APK não será veiculado aos usuários, porque ele está completamente oculto por um ou mais APKs com códigos de versão superiores"*. Significa que a versão em rascunho ainda carrega um pacote antigo junto com o novo — remova o pacote antigo da versão, na própria tela de criação da release.
+
+## Trocar o ícone do app: o build **não** regenera nada (2026-09-05)
+
+Sintoma reportado: "troquei o `icon.png`, buildei, e o ícone continua o antigo".
+
+O `flutter_launcher_icons` é um **gerador de código**, não um passo do build. Ele lê `assets/icon/icon.png` e escreve os arquivos de verdade em `android/app/src/main/res/mipmap-*/ic_launcher.png` e `ios/Runner/Assets.xcassets/AppIcon.appiconset/`. Esses arquivos gerados são versionados, e é só neles que o Gradle olha — trocar a imagem de origem sem rodar o gerador não muda absolutamente nada, e o build passa sem nenhum aviso. Foi exatamente o que aconteceu: o `icon.png` era de 5 de setembro e os mipmaps ainda eram de 21 de julho.
+
+Toda troca de ícone precisa de:
+
+```
+dart run flutter_launcher_icons
+flutter build apk   # ou o build que for
+```
+
+Depois vale conferir que o ícone dentro do APK é mesmo o novo, comparando o hash (foi assim que confirmei):
+
+```
+unzip -o -q build/app/outputs/flutter-apk/app-debug.apk res/mipmap-xxxhdpi-v4/ic_launcher.png -d /tmp/apk
+md5sum /tmp/apk/res/mipmap-xxxhdpi-v4/ic_launcher.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+```
+
+Duas coisas que confundem o diagnóstico e não são culpa do projeto:
+
+- **O launcher do Android cacheia ícones.** Mesmo com o APK certo instalado, algumas ROMs (MIUI em especial) continuam mostrando o antigo até desinstalar/reinstalar ou reiniciar o aparelho. Se o hash dentro do APK bate, o app está certo e o problema é cache do launcher.
+- **Alerta de canal alfa no iOS.** O gerador avisa que a App Store não aceita ícone com transparência. O `icon.png` deste projeto é RGBA, então na primeira submissão iOS será preciso `remove_alpha_ios: true` na seção `flutter_launcher_icons` do `pubspec.yaml`. No Android transparência é permitida — por isso o aviso não bloqueia nada hoje.
+
 ## Riscos
 
 - **`flutter_doc_scanner` é um pacote pequeno/comunitário** (não é um pacote oficial do Google/Flutter), embora envolva as APIs nativas oficiais (ML Kit Document Scanner, VisionKit). Se ele parar de ser mantido, a alternativa é trocar por outro wrapper equivalente (`aio_scanner`, `flutter_docs_scanner`) sem reescrever a lógica de negócio do `ScannerController` (a troca ficaria isolada nesse arquivo).

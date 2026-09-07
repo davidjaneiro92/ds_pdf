@@ -130,9 +130,14 @@ class LoadingWidget extends StatelessWidget {
           children: [
             Expanded(
               child: OutlinedButton(
+                // A ação precisa ser lida ANTES de `hideLoading()`, que
+                // limpa os três callbacks ao fechar o diálogo. Lê-la
+                // depois devolvia sempre `null` e o botão não fazia nada
+                // (ver specs/CHANGELOG.md, 2026-09-05).
                 onPressed: () {
+                  final acao = controller.aoVerEmMeusArquivos;
                   controller.hideLoading();
-                  controller.aoVerEmMeusArquivos?.call();
+                  acao?.call();
                 },
                 child: const Text('Ver em Meus Arquivos'),
               ),
@@ -141,8 +146,9 @@ class LoadingWidget extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
+                  final acao = controller.aoCompartilhar;
                   controller.hideLoading();
-                  controller.aoCompartilhar?.call();
+                  acao?.call();
                 },
                 child: const Text('Compartilhar'),
               ),
@@ -188,8 +194,9 @@ class LoadingWidget extends StatelessWidget {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () {
+                  final acao = controller.aoTentarNovamente;
                   controller.hideLoading();
-                  controller.aoTentarNovamente?.call();
+                  acao?.call();
                 },
                 child: const Text('Tentar de novo'),
               ),

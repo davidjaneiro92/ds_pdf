@@ -109,12 +109,16 @@ class PdfEditorController extends GetxController
     try {
       original = sf.PdfDocument(inputBytes: _bytesOriginais!);
       novo = sf.PdfDocument();
-      final margensSemBorda = sf.PdfMargins()..all = 0;
+      // `pages.insert(indice, tamanho, margens)` lança "Null check
+      // operator used on a null value" em qualquer chamada, no Syncfusion
+      // 27.2.5 e 29.1.38 (ver specs/CHANGELOG.md, 2026-09-05). O caminho
+      // que funciona é `pageSettings` + `pages.add()`.
+      novo.pageSettings.margins.all = 0;
 
       for (final indiceOriginal in ordemPaginas) {
         final template = original.pages[indiceOriginal].createTemplate();
-        final novaPagina =
-            novo.pages.insert(novo.pages.count, template.size, margensSemBorda);
+        novo.pageSettings.size = template.size;
+        final novaPagina = novo.pages.add();
         novaPagina.graphics.drawPdfTemplate(template, Offset.zero);
       }
 

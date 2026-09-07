@@ -137,7 +137,13 @@ class TextToPdfController extends GetxController
       final segmentos = dividirEmSegmentos();
       final formato = qpdf.PDFPageFormat.a4;
       final documentoFinal = sf.PdfDocument();
-      final margensSemBorda = sf.PdfMargins()..all = 0;
+      // `pages.insert(indice, tamanho, margens)` do Syncfusion lança
+      // "Null check operator used on a null value" em qualquer chamada —
+      // confirmado tanto na 27.2.5 quanto na 29.1.38, com documento vazio
+      // ou já com páginas (ver specs/CHANGELOG.md, 2026-09-05). O caminho
+      // que funciona é definir `pageSettings` e usar `pages.add()`, que
+      // respeita tamanho e margens por página.
+      documentoFinal.pageSettings.margins.all = 0;
       final cabecalho = cabecalhoController.text.trim();
       final rodape = rodapeController.text.trim();
       final fonteCabecalhoRodape = sf.PdfStandardFont(sf.PdfFontFamily.helvetica, 9);
@@ -174,8 +180,8 @@ class TextToPdfController extends GetxController
         final origem = sf.PdfDocument(inputBytes: bytesSegmento);
         for (var i = 0; i < origem.pages.count; i++) {
           final template = origem.pages[i].createTemplate();
-          final novaPagina = documentoFinal.pages
-              .insert(documentoFinal.pages.count, template.size, margensSemBorda);
+          documentoFinal.pageSettings.size = template.size;
+          final novaPagina = documentoFinal.pages.add();
           novaPagina.graphics.drawPdfTemplate(template, const Offset(0, 0));
           if (cabecalho.isNotEmpty) {
             novaPagina.graphics.drawString(
@@ -228,11 +234,17 @@ class TextToPdfController extends GetxController
         aoCompartilhar: () => Printing.sharePdf(bytes: bytesFinais, filename: filename),
         aoVerEmMeusArquivos: () => Get.toNamed(PagesRoutes.myFilesView.path),
       );
-    } catch (e) {
-      debugPrint('TextToPdfController.gerarPDF falhou: $e');
+    } catch (e, pilha) {
+      // A pilha importa: sem ela, a falha de `pages.insert` do Syncfusion
+      // aparecia só como "Null check operator used on a null value", sem
+      // dizer de onde vinha (ver specs/CHANGELOG.md, 2026-09-05).
+      debugPrint('TextToPdfController.gerarPDF falhou: $e\n$pilha');
       loadingController.mostrarErro(
-        causa: 'Verifique se há espaço de armazenamento disponível no '
-            'aparelho e tente novamente.',
+        // Não afirmar uma causa que não foi verificada: a mensagem antiga
+        // dizia "verifique o espaço de armazenamento" para qualquer erro,
+        // e mandou o usuário caçar espaço num aparelho com 3 GB livres.
+        causa: 'Algo deu errado ao montar o documento. Se continuar '
+            'acontecendo, tente com menos texto ou sem cabeçalho/rodapé.',
         aoTentarNovamente: gerarPDF,
       );
     }

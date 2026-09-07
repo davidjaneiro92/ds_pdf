@@ -21,14 +21,19 @@ if (hasReleaseKeystore) {
 
 android {
     namespace = "com.dsdevsolucoes.dspdf"
-    // compileSdk 35 é exigido por flutter_plugin_android_lifecycle (fixa
-    // "compileSdk 35" no próprio build.gradle) — não é opcional para este
-    // projeto. O Android SDK Build-Tools 35.0.0 correspondente não estava
-    // instalado nesta máquina (sem internet para baixar via sdkmanager); a
-    // pasta local "C:\Android\build-tools\35.0.0" foi criada manualmente como
-    // cópia da 34.0.0 já instalada (funcionalmente equivalente para este
-    // projeto) para satisfazer a checagem do Android Gradle Plugin.
-    compileSdk = 35
+    // compileSdk precisa ser >= targetSdk, então subiu junto para 36 quando
+    // a Play passou a exigir API 36 (ver targetSdk abaixo). A plataforma
+    // "android-36" já está instalada em C:\Android\platforms.
+    compileSdk = 36
+    // Fixado porque o Build-Tools 36.0.0 não está instalado nesta máquina
+    // (sem internet para o sdkmanager) e, sem esta linha, o AGP tenta usar
+    // a versão que casa com o compileSdk e falha. O 35.0.0 compila contra a
+    // API 36 sem problema — o Build-Tools é o empacotador (aapt2/d8), não a
+    // plataforma alvo.
+    //
+    // Nota histórica: a pasta "C:\Android\build-tools\35.0.0" foi criada
+    // manualmente como cópia da 34.0.0, pelo mesmo motivo de rede.
+    buildToolsVersion = "35.0.0"
     // NDK pedido por vários plugins (flutter_doc_scanner, image_picker_android,
     // path_provider_android, permission_handler_android, printing, uri_to_file,
     // flutter_plugin_android_lifecycle). Era só um aviso (não bloqueava o
@@ -53,10 +58,11 @@ android {
         // (com.google.android.gms:play-services-mlkit-document-scanner) — o
         // padrão do Flutter (21) não é suficiente para essa biblioteca.
         minSdk = 23
-        // targetSdk 35: a Play Store passou a exigir API 35 (Android 15) como
-        // mínimo para novos envios — o padrão do Flutter (34) é rejeitado no
-        // upload ("nível desejado da API... precisa ser de pelo menos 35").
-        targetSdk = 35
+        // targetSdk 36 (Android 16). A exigência mínima da Play sobe todo
+        // ano e é verificada no **envio**, não no build: em 2026-07-23 o
+        // envio com 34 foi rejeitado pedindo 35; em 2026-09-06 o envio com
+        // 35 foi rejeitado pedindo 36. Revisar a cada release.
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
